@@ -1,0 +1,496 @@
+/* =========================================================
+   LITURGI MINGGU BENTUK IV — MOBILE FIRST
+   ========================================================= */
+
+:root {
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --soft: #f8fafc;
+  --text: #171717;
+  --muted: #6b7280;
+  --border: #d9dee7;
+  --accent: #111827;
+  --content-size: 17px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: var(--content-size);
+  line-height: 1.6;
+}
+
+button { font: inherit; }
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255,255,255,.97);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+
+.header-inner {
+  width: min(100%, 1050px);
+  margin: auto;
+  min-height: 76px;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .09em;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 2px 0 0;
+  font-size: clamp(17px, 4.4vw, 26px);
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.icon-button {
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.progress-wrap {
+  position: sticky;
+  top: 76px;
+  z-index: 40;
+  height: 3px;
+  background: #e5e7eb;
+}
+
+.progress-bar {
+  width: 0;
+  height: 100%;
+  background: var(--accent);
+}
+
+.app-shell {
+  width: min(100%, 1050px);
+  margin: auto;
+  padding: 14px;
+}
+
+.hero-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 7px 22px rgba(15,23,42,.07);
+}
+
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.hero-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: var(--muted);
+}
+
+.hero-title {
+  margin: 4px 0 0;
+  font-size: clamp(21px, 5vw, 31px);
+  line-height: 1.15;
+}
+
+.service-code {
+  background: var(--accent);
+  color: #fff;
+  padding: 7px 10px;
+  border-radius: 9px;
+  height: fit-content;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.hero-meta {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 15px;
+  padding-top: 14px;
+}
+
+.hero-meta div {
+  display: grid;
+  grid-template-columns: 85px 1fr;
+  gap: 10px;
+}
+
+.hero-meta strong {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.hero-meta span {
+  font-size: 14px;
+}
+
+.toolbar {
+  position: sticky;
+  top: 79px;
+  z-index: 35;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tool-button {
+  min-width: 42px;
+  height: 38px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.toc-panel {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  width: min(88vw, 370px);
+  background: #fff;
+  transform: translateX(-105%);
+  transition: transform .25s ease;
+  box-shadow: 10px 0 30px rgba(0,0,0,.18);
+  overflow-y: auto;
+}
+
+.toc-panel.open { transform: translateX(0); }
+
+.toc-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-button {
+  border: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.toc-item {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #edf0f3;
+  background: #fff;
+  padding: 13px 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.toc-number {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.toc-title {
+  display: block;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0,0,0,.38);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+
+.backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* =========================
+   LITURGY SECTIONS
+   ========================= */
+
+.liturgy-section {
+  scroll-margin-top: 106px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(15,23,42,.04);
+}
+
+.section-heading {
+  padding: 14px 15px;
+  background: var(--soft);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.section-number {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.section-title {
+  margin: 1px 0 0;
+  font-size: clamp(15px, 4vw, 20px);
+  line-height: 1.3;
+}
+
+.section-body {
+  padding: 16px;
+}
+
+.role-line {
+  display: grid;
+  grid-template-columns: 105px 1fr;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+
+.role {
+  font-weight: 800;
+}
+
+.instruction {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.response {
+  font-style: italic;
+}
+
+.standing {
+  text-align: right;
+  font-style: italic;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.scripture {
+  margin: 11px 0;
+  padding: 13px;
+  border-left: 4px solid var(--accent);
+  background: var(--soft);
+}
+
+.scripture strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.song-card {
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.song-info {
+  padding: 12px 14px;
+  background: var(--soft);
+  border-bottom: 1px solid var(--border);
+}
+
+.song-source {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.song-title {
+  margin-top: 2px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.notation-wrap {
+  padding: 8px;
+  overflow-x: auto;
+  background: #fff;
+}
+
+.notation-image {
+  display: block;
+  width: 100%;
+  min-width: 600px;
+  height: auto;
+}
+
+.song-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 9px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.zoom-button {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 9px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.lyrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  border: 1px solid var(--border);
+}
+
+.lyrics-cell {
+  padding: 14px;
+  text-align: center;
+}
+
+.lyrics-cell + .lyrics-cell {
+  border-top: 1px solid var(--border);
+}
+
+.lyrics-heading {
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.lyrics-text {
+  white-space: pre-line;
+  line-height: 1.45;
+}
+
+.amin-box {
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  margin-top: 12px;
+  font-family: Georgia, serif;
+  font-size: 18px;
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 10px;
+  padding: 25px 10px 40px;
+}
+
+/* =========================
+   LIGHTBOX
+   ========================= */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.92);
+  padding: 15px;
+}
+
+.lightbox.open { display: flex; }
+
+.lightbox img {
+  max-width: 100%;
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+/* =========================
+   DESKTOP
+   ========================= */
+
+@media (min-width: 760px) {
+  .app-shell { padding: 24px; }
+  .hero-card { padding: 24px; }
+  .section-body { padding: 22px; }
+
+  .lyrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .lyrics-cell + .lyrics-cell {
+    border-top: 0;
+    border-left: 1px solid var(--border);
+  }
+}

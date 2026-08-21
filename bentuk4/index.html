@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <title>Liturgi Minggu Bentuk IV</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<header class="app-header">
+  <div class="header-inner">
+    <div>
+      <div class="eyebrow">GEREJA KALIMANTAN EVANGELIS</div>
+      <h1 id="pageTitle">LITURGI HARI MINGGU (BENTUK IV)</h1>
+      <div class="subtitle" id="pageSubtitle"></div>
+    </div>
+    <button class="icon-button" id="menuButton" aria-label="Daftar liturgi">☰</button>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<main class="app-shell">
+
+  <section class="hero-card">
+    <div class="hero-top">
+      <div>
+        <div class="hero-label">IBADAH MINGGU</div>
+        <div class="hero-title" id="heroTitle"></div>
+      </div>
+      <div class="service-code" id="serviceCode">06.00 WIB</div>
+    </div>
+
+    <div class="hero-meta">
+      <div><strong>Tema</strong><span id="heroTheme"></span></div>
+      <div><strong>Nas</strong><span id="heroReading"></span></div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <button class="tool-button" id="fontMinus">A−</button>
+    <button class="tool-button" id="fontReset">A</button>
+    <button class="tool-button" id="fontPlus">A+</button>
+    <button class="tool-button" id="scrollTop">↑</button>
+  </div>
+
+  <nav class="toc-panel" id="tocPanel" aria-label="Daftar liturgi">
+    <div class="toc-header">
+      <strong>Daftar Liturgi</strong>
+      <button class="close-button" id="closeMenu">×</button>
+    </div>
+    <div id="tocList"></div>
+  </nav>
+
+  <div id="liturgyContainer"></div>
+
+  <footer class="app-footer">
+    LITURGI HARI MINGGU (BENTUK IV) — GEREJA KALIMANTAN EVANGELIS
+  </footer>
+</main>
+
+<div class="backdrop" id="backdrop"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
