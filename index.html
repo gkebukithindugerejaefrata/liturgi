@@ -32,9 +32,12 @@ button{font:inherit;cursor:pointer}.btn{background:var(--pri);color:#fff;border:
 .liturgy-card-image .liturgy-card-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.25));pointer-events:none;border-radius:14px 14px 0 0}
 .liturgy-card-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;background:var(--card)}
 .liturgy-card-info .liturgy-title{margin:0 0 4px;font-size:17px;font-weight:700;line-height:1.35}
-.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:3px}
+.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:3px;flex:1}
 .liturgy-card-info .liturgy-meta .mut{font-size:13px;line-height:1.4}
+.liturgy-card-info .liturgy-bottom-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
+.liturgy-card-info .liturgy-share{display:flex;gap:6px;align-items:center;flex-shrink:0}
 .liturgy-card-info .acts{margin-top:8px}
+@media(max-width:380px){.liturgy-card-info .liturgy-bottom-row{flex-direction:column;align-items:flex-start}}
 
 .liturgy-card{display:flex;flex-direction:column;overflow:hidden;padding:0 !important;border-radius:14px}
 .liturgy-card-image{position:relative;width:100%;aspect-ratio:851/315;overflow:hidden;background:var(--card);border-bottom:1px solid var(--bd);display:block}
@@ -43,9 +46,12 @@ button{font:inherit;cursor:pointer}.btn{background:var(--pri);color:#fff;border:
 .liturgy-card-image .liturgy-card-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.25));pointer-events:none;border-radius:14px 14px 0 0}
 .liturgy-card-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;background:var(--card)}
 .liturgy-card-info .liturgy-title{margin:0 0 4px;font-size:17px;font-weight:700;line-height:1.35}
-.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:3px}
+.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:3px;flex:1}
 .liturgy-card-info .liturgy-meta .mut{font-size:13px;line-height:1.4}
+.liturgy-card-info .liturgy-bottom-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
+.liturgy-card-info .liturgy-share{display:flex;gap:6px;align-items:center;flex-shrink:0}
 .liturgy-card-info .acts{margin-top:8px}
+@media(max-width:380px){.liturgy-card-info .liturgy-bottom-row{flex-direction:column;align-items:flex-start}}
 
 
 .global-hero{margin-bottom:18px;box-shadow:0 4px 16px rgba(0,0,0,.12);border-radius:14px;display:block;overflow:hidden;aspect-ratio:851/315;position:relative;width:100%;max-width:851px;background:var(--card);border:1px solid var(--bd)}
@@ -349,8 +355,56 @@ function edPt(p,i){
   }
   return h+'</div>';
 }
+
+function getShareUrl(id){
+  try{
+    const url = new URL(window.location.href);
+    url.searchParams.set('id', id);
+    return url.toString();
+  }catch(e){
+    return window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(id);
+  }
+}
+function shareToWA(id, judul){
+  const url = getShareUrl(id);
+  const text = (judul ? judul + ' - Liturgi Ibadah\n' : '') + url;
+  const waUrl = 'https://wa.me/?text=' + encodeURIComponent(text);
+  window.open(waUrl, '_blank');
+}
+function copyShareLink(id){
+  const url = getShareUrl(id);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>toast('Link disalin: '+url)).catch(()=>{ prompt('Copy link manual:', url); });
+  }else{
+    prompt('Copy link manual:', url);
+  }
+}
+function nativeShare(id, judul){
+  const url = getShareUrl(id);
+  if(navigator.share){
+    navigator.share({title: judul||'Liturgi Ibadah', text: judul||'Liturgi Ibadah', url: url}).catch(()=>{});
+  }else{
+    shareToWA(id, judul);
+  }
+}
+function updateUrlForId(id){
+  try{
+    const url = new URL(window.location.href);
+    url.searchParams.set('id', id);
+    history.replaceState(null,'',url.toString());
+  }catch(e){}
+}
+function clearUrlId(){
+  try{
+    const url = new URL(window.location.href);
+    url.searchParams.delete('id');
+    history.replaceState(null,'',url.pathname + url.search + url.hash);
+  }catch(e){}
+}
+
+
 function render(){
-  let h='<header><h1>LITURGI IBADAH</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
+  let h='<header><h1>Liturgi Ibadah</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
   if(S.admin&&S.view!='edit')h+='<div class="seg"><button data-a="tab" data-v="jemaat" class="'+(S.tab=='jemaat'?'on':'')+'">Jemaat</button><button data-a="tab" data-v="admin" class="'+(S.tab=='admin'?'on':'')+'">Admin</button></div>';
   h+='</header><main>';
   const L=[...D.liturgies].sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||''));
@@ -382,10 +436,13 @@ function render(){
       }
       h+='<div class="liturgy-card-info">';
       h+='<h3 class="liturgy-title">'+esc(x.judul||'Tanpa Judul')+'</h3>';
+      h+='<div class="liturgy-bottom-row">';
       h+='<div class="liturgy-meta">';
       if(tgl) h+='<div class="mut">📅 '+esc(tgl)+'</div>';
       if(jam) h+='<div class="mut">🕐 '+esc(jam)+'</div>';
       if(x.lokasi && x.lokasi.trim()) h+='<div class="mut">📍 '+esc(x.lokasi)+'</div>';
+      h+='</div>';
+      h+='<div class="liturgy-share"><button class="btn o sm" data-a="sharelistwa" data-id="'+x.id+'" style="font-size:11px;padding:4px 8px">💬 WA</button><button class="btn o sm" data-a="sharelistcopy" data-id="'+x.id+'" style="font-size:11px;padding:4px 8px">🔗 Link</button></div>';
       h+='</div>';
       if(S.tab=='admin')h+='<div class="row acts"><button class="btn o sm" data-a="edit" data-id="'+x.id+'">Edit</button><button class="btn o sm" data-a="dup" data-id="'+x.id+'">Duplikat</button><button class="btn d sm" data-a="del" data-id="'+x.id+'">'+(S.cf==x.id?'Yakin hapus?':'Hapus')+'</button></div>';
       h+='</div></div>';
@@ -393,11 +450,16 @@ function render(){
   }else if(S.view=='detail'){
     const x=D.liturgies.find(y=>y.id==S.id);
     if(x){
-      h+='<div class="row" style="margin-bottom:10px"><button class="btn o sm" data-a="back">← Kembali</button><span class="sp"></span></div>'
+      h+='<div class="row" style="margin-bottom:10px"><button class="btn o sm" data-a="back">← Kembali</button><span class="sp"></span><button class="btn o sm" data-a="sharewa" title="Bagikan ke WA">💬 WA</button><button class="btn o sm" data-a="sharecopy" title="Copy Link">🔗 Copy</button></div>'
       +'<div class="card" style="padding:10px"><div class="tag" style="margin-bottom:8px">📚 Cetak PDF</div><div class="row" style="gap:8px;flex-wrap:wrap">'
       +'<button class="btn o sm" data-a="pdff4">📄 F4 (215x330)</button>'
       +'<button class="btn o sm" data-a="pdff4super">📗 Bookfold F4</button>'
-      +'</div></div>';
+      +'</div></div>'
+      +'<div class="card" style="padding:10px"><div class="tag" style="margin-bottom:8px">🔗 Bagikan Liturgi</div><div class="row" style="gap:8px;flex-wrap:wrap">'
+      +'<button class="btn o sm" data-a="sharewa">💬 Share ke WhatsApp</button>'
+      +'<button class="btn o sm" data-a="sharecopy">📋 Copy Link</button>'
+      +'<button class="btn o sm" data-a="sharenative">📤 Bagikan...</button>'
+      +'</div><div class="mut" style="margin-top:8px;word-break:break-all;font-size:11px;color:var(--mut)">Link: '+esc(getShareUrl(x.id))+'</div></div>';
       // HEADER IMAGE PER LITURGI - beda liturgi beda image
       if(x.headerImg){
         h+='<div class="hero-banner" style="margin-bottom:12px"><img src="'+esc(x.headerImg)+'" alt="Header '+esc(x.judul)+'" style="width:100%;height:100%;object-fit:cover"></div>';
@@ -434,7 +496,7 @@ document.addEventListener('click',async e=>{
   const a=b.dataset.a,id=b.dataset.id,i=+b.dataset.i,E=S.edit;
   if(['new','edit','dup','del','save','add','up','dn','rm','addl','rml','chpin','exp','imp','upimg','rmimg'].includes(a)&&!(S.admin&&S.un))return;
   if(a=='unlock')return doLogin();
-  if(a=='open'&&!e.target.closest('button')){S.view='detail';S.id=id;S.dn=ld(id)}
+  if(a=='open'&&!e.target.closest('button')){S.view='detail';S.id=id;S.dn=ld(id); updateUrlForId(id);}
   else if(a=='exp'){const bl=new Blob([JSON.stringify({liturgies:D.liturgies},null,1)],{type:'application/json'});const l=document.createElement('a');l.href=URL.createObjectURL(bl);l.download='liturgi-backup.json';l.click();return}
   else if(a=='imp'){const f=document.createElement('input');f.type='file';f.accept='.json';f.onchange=()=>{const fl=f.files[0];if(!fl)return;fl.text().then(t=>{try{const j=JSON.parse(t);if(!Array.isArray(j.liturgies))throw 0;D.liturgies=j.liturgies;j.liturgies.forEach(x=>persist(x))}catch(e){toast('File tidak valid')}})};f.click();return}
   else if(a=='mark'){const pid=b.dataset.pid,k=S.dn.indexOf(pid),d=k<0;d?S.dn.push(pid):S.dn.splice(k,1);sv(S.id,S.dn);b.closest('.pt').classList.toggle('done',d);b.querySelector('.n').textContent=d?'✓':b.dataset.n;upProg();return}
@@ -451,7 +513,12 @@ document.addEventListener('click',async e=>{
   else if(a=='theme'){P.th=P.th=='auto'?'light':P.th=='light'?'dark':'auto';applyP()}
   else if(a=='fs'){P.fs=Math.min(1.4,Math.max(.85,+(P.fs+(+b.dataset.v)).toFixed(2)));applyP()}
   else if(a=='tab'){S.tab=b.dataset.v;S.cf=null;S.chg=false;ss('lt',S.tab)}
-  else if(a=='back'){S.view='list'}
+  else if(a=='back'){S.view='list'; clearUrlId();}
+  else if(a=='sharewa'){const x=D.liturgies.find(y=>y.id==S.id); if(x) shareToWA(x.id, x.judul); return}
+  else if(a=='sharecopy'){const x=D.liturgies.find(y=>y.id==S.id); if(x) copyShareLink(x.id); return}
+  else if(a=='sharenative'){const x=D.liturgies.find(y=>y.id==S.id); if(x) nativeShare(x.id, x.judul); return}
+  else if(a=='sharelistwa'){const x=D.liturgies.find(y=>y.id==id); if(x){ shareToWA(x.id, x.judul); } return}
+  else if(a=='sharelistcopy'){const x=D.liturgies.find(y=>y.id==id); if(x){ copyShareLink(x.id); } return}
   else if(a=='new'){S.edit={id:uid(),judul:'',tanggal:new Date().toISOString().slice(0,10),lokasi:'',jam:'',points:[],headerImg:null};S.view='edit'}
   else if(a=='edit'){S.edit=JSON.parse(JSON.stringify(D.liturgies.find(y=>y.id==id)));S.view='edit'}
   else if(a=='dup'){const c=JSON.parse(JSON.stringify(D.liturgies.find(y=>y.id==id)));c.id=uid();c.judul+=' (Salinan)';c.points.forEach(p=>p.id=uid());D.liturgies.push(c);return persist(c)}
@@ -521,10 +588,35 @@ applyP();render();
 setTimeout(()=>{ const s=document.getElementById('splash'); if(s){ s.classList.add('hide'); setTimeout(()=>{ s.remove(); },600); } },2000);
 (async()=>{
   S.admin=true;if(sg('lt')=='admin')S.tab='admin';
+  // SHARE LINK WA: parse ?id= dari URL untuk deep link
+  try{
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareId = urlParams.get('id');
+    if(shareId){
+      S._pendingShareId = shareId;
+      S.view='detail'; S.id=shareId;
+    }
+  }catch(e){}
+
   if(!sb){render();toast('Isi URL dan anon key Supabase di file ini');return}
   const {data}=await sb.auth.getSession();S.un=!!data.session;
   sb.auth.onAuthStateChange((ev,ses)=>{const u=!!ses;if(u!=S.un){S.un=u;render()}});
   render();await loadAll();
+  // Jika ada pending share id, coba buka setelah data loaded
+  if(S._pendingShareId){
+    const found = D.liturgies.find(y=>y.id==S._pendingShareId);
+    if(found){
+      S.view='detail'; S.id=found.id; S.dn=ld(found.id);
+      render();
+    }else{
+      // coba tunggu sebentar lagi (supabase async)
+      setTimeout(()=>{
+        const f2 = D.liturgies.find(y=>y.id==S._pendingShareId);
+        if(f2){ S.view='detail'; S.id=f2.id; S.dn=ld(f2.id); render(); }
+      }, 1500);
+    }
+  }
+
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.view!='edit')loadAll()});
 })();
 </script></body></html>
