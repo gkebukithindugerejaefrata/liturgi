@@ -442,7 +442,7 @@ function render(){
       if(jam) h+='<div class="mut">🕐 '+esc(jam)+'</div>';
       if(x.lokasi && x.lokasi.trim()) h+='<div class="mut">📍 '+esc(x.lokasi)+'</div>';
       h+='</div>';
-      h+='<div class="liturgy-share"><button class="btn o sm" data-a="sharelistwa" data-id="'+x.id+'" style="font-size:11px;padding:4px 8px">💬 WA</button><button class="btn o sm" data-a="sharelistcopy" data-id="'+x.id+'" style="font-size:11px;padding:4px 8px">🔗 Link</button></div>';
+      if(S.tab!='admin'){ h+='<div class="liturgy-share"><button class="btn o sm" data-a="sharelistwa" data-id="'+x.id+'" style="font-size:11px;padding:4px 8px">💬 WA</button><button class="btn o sm" data-a="sharelistcopy" data-id="'+x.id+'" style="font-size:11px;padding:4px 8px">🔗 Link</button></div>'; }
       h+='</div>';
       if(S.tab=='admin')h+='<div class="row acts"><button class="btn o sm" data-a="edit" data-id="'+x.id+'">Edit</button><button class="btn o sm" data-a="dup" data-id="'+x.id+'">Duplikat</button><button class="btn d sm" data-a="del" data-id="'+x.id+'">'+(S.cf==x.id?'Yakin hapus?':'Hapus')+'</button></div>';
       h+='</div></div>';
@@ -450,16 +450,12 @@ function render(){
   }else if(S.view=='detail'){
     const x=D.liturgies.find(y=>y.id==S.id);
     if(x){
-      h+='<div class="row" style="margin-bottom:10px"><button class="btn o sm" data-a="back">← Kembali</button><span class="sp"></span><button class="btn o sm" data-a="sharewa" title="Bagikan ke WA">💬 WA</button><button class="btn o sm" data-a="sharecopy" title="Copy Link">🔗 Copy</button></div>'
+      h+='<div class="row" style="margin-bottom:10px"><button class="btn o sm" data-a="back">← Kembali</button><span class="sp"></span></div>'
       +'<div class="card" style="padding:10px"><div class="tag" style="margin-bottom:8px">📚 Cetak PDF</div><div class="row" style="gap:8px;flex-wrap:wrap">'
       +'<button class="btn o sm" data-a="pdff4">📄 F4 (215x330)</button>'
       +'<button class="btn o sm" data-a="pdff4super">📗 Bookfold F4</button>'
-      +'</div></div>'
-      +'<div class="card" style="padding:10px"><div class="tag" style="margin-bottom:8px">🔗 Bagikan Liturgi</div><div class="row" style="gap:8px;flex-wrap:wrap">'
-      +'<button class="btn o sm" data-a="sharewa">💬 Share ke WhatsApp</button>'
-      +'<button class="btn o sm" data-a="sharecopy">📋 Copy Link</button>'
-      +'<button class="btn o sm" data-a="sharenative">📤 Bagikan...</button>'
-      +'</div><div class="mut" style="margin-top:8px;word-break:break-all;font-size:11px;color:var(--mut)">Link: '+esc(getShareUrl(x.id))+'</div></div>';
+      +'</div></div>';
+
       // HEADER IMAGE PER LITURGI - beda liturgi beda image
       if(x.headerImg){
         h+='<div class="hero-banner" style="margin-bottom:12px"><img src="'+esc(x.headerImg)+'" alt="Header '+esc(x.judul)+'" style="width:100%;height:100%;object-fit:cover"></div>';
