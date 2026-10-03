@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liturgi Ibadah</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style id="css">
+:root{--bg:#f7f5f0;--card:#fff;--tx:#1f2430;--mut:#6b7280;--pri:#5b3fa0;--pri2:#ece6fa;--bd:#e4e0d8;--dng:#c0392b;--r1:#2e6bd6;--r2:#b45309;--r3:#0f766e;--r4:#7c2d92;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171c;--card:#1f232b;--tx:#eceef2;--mut:#9aa1ad;--pri:#a78bfa;--pri2:#2b2540;--bd:#2f3541;--dng:#f87171;--r1:#7ab0ff;--r2:#fbbf6a;--r3:#5eead4;--r4:#e0a6f2}}
+:root[data-theme="dark"]{--bg:#15171c;--card:#1f232b;--tx:#eceef2;--mut:#9aa1ad;--pri:#a78bfa;--pri2:#2b2540;--bd:#2f3541;--dng:#f87171;--r1:#7ab0ff;--r2:#fbbf6a;--r3:#5eead4;--r4:#e0a6f2}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}html{font-size:calc(16px*var(--fs,1))}body{margin:0;background:var(--bg);color:var(--tx);font:1rem/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-size:19px;margin:0;flex:1}main{max-width:640px;margin:0 auto;padding:14px 14px 90px}
+.seg{display:flex;background:var(--pri2);border-radius:10px;padding:3px}.seg button{border:0;background:none;color:var(--tx);padding:6px 14px;border-radius:8px;font:inherit;font-size:14px}.seg .on{background:var(--pri);color:#fff}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+.item{cursor:pointer}.item h3{margin:0 0 4px;font-size:17px}.mut{color:var(--mut);font-size:.875rem}.tg{display:flex;gap:6px}.tg button{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:6px 10px;font-size:.8125rem}h1{font-size:1.2rem}
+button{font:inherit;cursor:pointer}.btn{background:var(--pri);color:#fff;border:0;border-radius:10px;padding:10px 16px}.btn.o{background:none;color:var(--pri);border:1px solid var(--pri)}.btn.d{background:none;color:var(--dng);border:1px solid var(--dng)}.btn.sm{padding:6px 12px;font-size:14px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{flex:1}.acts{margin-top:10px}
+.ic{border:1px solid var(--bd);background:none;color:var(--tx);border-radius:8px;width:34px;height:34px}.ic.dng{color:var(--dng)}
+.pt{padding:6px 0;border-bottom:1px solid var(--bd);scroll-margin-top:70px}.pt:last-child{border:0}
+.hd{display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.n{flex:none;width:32px;height:32px;border-radius:50%;background:var(--pri2);color:var(--pri);display:grid;place-items:center;font-weight:700;font-size:.875rem;line-height:1}
+.ht{flex:1;min-width:0}.t{font-weight:600;line-height:1.35}.tag{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--pri);font-weight:700;line-height:1.2}
+.bd{padding:2px 0 8px 44px}.bd.lt{padding-left:0}.bd .nt{margin-left:-44px;width:calc(100% + 44px)}
+.pt.done .n{background:var(--r3);color:var(--bg)}.pt.done .t{text-decoration:line-through;opacity:.6}.pt.done .bd{opacity:.5}
+.prog{display:flex;align-items:center;gap:8px;margin-bottom:12px}.prog span{flex:1;font-size:.875rem;color:var(--mut)}
+.d{margin:4px 0 0;white-space:pre-wrap;color:var(--mut)}
+.ln{display:flex;gap:10px;padding:9px 0;white-space:pre-wrap;align-items:flex-start}.ln+.ln{border-top:1px solid var(--bd)}
+.ln b{flex:none;min-width:84px;text-align:center;font-size:.75rem;letter-spacing:.03em;padding:3px 10px;border-radius:999px;border:1px solid var(--c);color:var(--c);background:var(--pri2);background:color-mix(in srgb,var(--c) 14%,transparent);margin-top:1px}
+.ln.r-Pendeta{--c:var(--r1)}.ln.r-Liturgos{--c:var(--r2)}.ln.r-Jemaat{--c:var(--r3)}.ln.r-Bersama{--c:var(--r4)}
+.ln.r-Bersama b{background:var(--r4);color:var(--bg);box-shadow:0 1px 3px rgba(0,0,0,.2)}.ln.r-Bersama span{font-weight:700}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 2px}
+input,textarea,select{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:9px 10px}textarea{min-height:64px;resize:vertical}
+.line{display:grid;grid-template-columns:96px 1fr 34px;gap:6px;margin-top:6px;align-items:start}
+.add{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--bd);display:flex;gap:8px;max-width:640px;margin:0 auto}.bar .btn{flex:1}
+.nt{width:100%;margin-top:8px;border-radius:8px;border:1px solid var(--bd);background:#fff;cursor:zoom-in;display:block}.ly{color:var(--tx);margin-top:10px}
+.thumb{position:relative;margin:6px 0}.thumb img{width:100%;max-height:160px;object-fit:contain;background:#fff;border:1px solid var(--bd);border-radius:8px;display:block}.thumb button{position:absolute;top:6px;right:6px;background:var(--card)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.92);overflow:auto;z-index:20}.ov img{width:100%;background:#fff;display:block;margin-top:56px}.ov.z img{width:250%;max-width:none}.ov .btn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:21}
+#toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#222;color:#fff;padding:8px 14px;border-radius:20px;font-size:14px;display:none}
+</style></head>
+<body><div id="app"></div><div id="toast"></div>
+<script id="data" type="application/json">{"liturgies":[]}</script>
+<script id="js">
+const SB={url:'https://kykrenunmuwtamvlslfi.supabase.co',key:'sb_publishable_487n4Dg6aNkKdp3ntNrQUw_RZRmi6VT'};
+const BUCKET='notasi';
+const D={liturgies:[]};
+const sb=(window.supabase&&!/ISI_/.test(SB.url+SB.key))?supabase.createClient(SB.url,SB.key):null;
+const $=s=>document.getElementById(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const ROLES=['Pendeta','Liturgos','Jemaat','Bersama'];
+const TN={point:'Point',lagu:'Lagu',litani:'Litani',desk:'Point + Deskripsi'};
+const S={dn:[],tab:'jemaat',view:'list',id:null,edit:null,cf:null,admin:false,owner:false,chg:false,fails:0,until:0,un:false};
+const ss=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
+const sg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
+function lockCard(){
+  return '<div class="card"><h3 style="margin:0 0 6px">Masuk Admin</h3><p class="mut">Gunakan akun admin Supabase.</p><label>Email<input id="pin" type="email" autocomplete="username"></label><label>Password<input id="pin2" type="password" autocomplete="current-password"></label><div class="row acts"><button class="btn" data-a="unlock">Masuk</button></div><div id="lerr" style="color:var(--dng);margin-top:8px;font-size:.875rem"></div></div>';
+}
+async function doLogin(){
+  const er=$('lerr');
+  if(!sb){er.textContent='Supabase belum dikonfigurasi di file ini';return}
+  const {error}=await sb.auth.signInWithPassword({email:$('pin').value.trim(),password:$('pin2').value});
+  if(error){er.textContent='Email atau password salah';return}
+  S.un=true;ss('lt','admin');render();
+}
+let ART=null;
+let P={th:'auto',fs:1};
+try{P=Object.assign(P,JSON.parse(localStorage.getItem('lp')||'{}'))}catch(e){}
+function applyP(){const r=document.documentElement;if(P.th=='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',P.th);r.style.setProperty('--fs',P.fs);try{localStorage.setItem('lp',JSON.stringify(P))}catch(e){}}
+const meta=x=>esc(fd(x.tanggal))+(x.jam?' · '+esc(String(x.jam).replace(':','.')):'')+'<br>'+esc(x.lokasi);
+const fd=t=>{try{return new Date(t+'T00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}catch(e){return t}};
+const toast=m=>{const e=$('toast');e.textContent=m;e.style.display='block';setTimeout(()=>e.style.display='none',2500)};
+function cmp(file){return new Promise((ok,no)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(bl=>bl?ok(bl):no(),'image/jpeg',.85)};im.onerror=()=>no();im.src=u})}
+async function loadAll(){
+  if(!sb)return;
+  const {data,error}=await sb.from('liturgies').select('data');
+  if(error){toast('Gagal memuat: '+error.message);return}
+  D.liturgies=(data||[]).map(x=>x.data);
+  if(S.view!='edit')render();
+}
+async function persist(up,del){
+  if(!sb){toast('Supabase belum dikonfigurasi');render();return}
+  let er=null;
+  if(up)er=(await sb.from('liturgies').upsert({id:up.id,data:up,updated_at:new Date().toISOString()})).error;
+  if(del)er=(await sb.from('liturgies').delete().eq('id',del)).error;
+  if(er){toast('Gagal menyimpan: '+er.message);await loadAll();return}
+  toast('Tersimpan');render();
+}
+async function upl(file){
+  const b=await cmp(file),path=uid()+uid()+'.jpg';
+  const {error}=await sb.storage.from(BUCKET).upload(path,b,{contentType:'image/jpeg',cacheControl:'31536000'});
+  if(error)throw error;
+  return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+function pt(p,i){
+  const dn=S.dn.includes(p.id);
+  let h='<div class="pt'+(dn?' done':'')+'"><div class="hd" data-a="mark" data-pid="'+p.id+'" data-n="'+(i+1)+'"><div class="n">'+(dn?'✓':i+1)+'</div><div class="ht">'+(p.type=='lagu'?'<div class="tag">Menyanyikan Lagu</div>':'')+'<div class="t">'+esc(p.type=='lagu'&&p.nomor?p.nomor+' — ':'')+esc(p.title)+'</div></div></div><div class="bd'+(p.type=='litani'?' lt':'')+'">';
+  if(p.type=='desk'&&p.desc)h+='<p class="d">'+esc(p.desc)+'</p>';
+  if(p.type=='lagu'){(p.imgs||[]).forEach(src=>{h+='<img class="nt" data-a="zoom" src="'+esc(src)+'" alt="Notasi lagu">'});if(p.lirik)h+='<p class="d ly">'+esc(p.lirik)+'</p>'}
+  if(p.type=='litani')h+=(p.lines||[]).map(l=>'<div class="ln r-'+l.who+'"><b>'+l.who+'</b><span>'+esc(l.text)+'</span></div>').join('');
+  return h+'</div></div>';
+}
+function upProg(){const x=D.liturgies.find(y=>y.id==S.id),e=$('prog');if(x&&e)e.textContent=x.points.filter(p=>S.dn.includes(p.id)).length+' / '+x.points.length+' point selesai'}
+const MEM={};
+function ld(id){try{const v=JSON.parse(localStorage.getItem('dn_'+id)||'null');if(v)return v}catch(e){}return MEM[id]||[]}
+function sv(id,a){MEM[id]=a;try{localStorage.setItem('dn_'+id,JSON.stringify(a))}catch(e){}}
+const inp=(lb,f,v,i)=>'<label>'+lb+'<input data-f="'+f+'" data-i="'+i+'" value="'+esc(v)+'"></label>';
+function edPt(p,i){
+  let h='<div class="card"><div class="row"><span class="tag">#'+(i+1)+' '+TN[p.type]+'</span><span class="sp"></span><button class="ic" data-a="up" data-i="'+i+'">↑</button><button class="ic" data-a="dn" data-i="'+i+'">↓</button><button class="ic dng" data-a="rm" data-i="'+i+'">✕</button></div>';
+  h+=inp(p.type=='lagu'?'Judul lagu':'Judul point','title',p.title,i);
+  if(p.type=='lagu'){
+    h+=inp('Nomor / buku (opsional)','nomor',p.nomor,i)+'<div class="acts"><div class="mut">Gambar notasi (opsional, bisa lebih dari satu)</div>';
+    (p.imgs||[]).forEach((src,k)=>{h+='<div class="thumb"><img src="'+esc(src)+'" alt=""><button class="ic dng" data-a="rmimg" data-i="'+i+'" data-l="'+k+'">✕</button></div>'});
+    h+='<button class="btn o sm" data-a="upimg" data-i="'+i+'">+ Unggah gambar</button></div><label>Teks / lirik lagu (tampil di bawah gambar, opsional)<textarea data-f="lirik" data-i="'+i+'">'+esc(p.lirik)+'</textarea></label>';
+  }
+  if(p.type=='desk')h+='<label>Deskripsi<textarea data-f="desc" data-i="'+i+'">'+esc(p.desc)+'</textarea></label>';
+  if(p.type=='litani'){
+    (p.lines||[]).forEach((l,k)=>{h+='<div class="line"><select data-f="who" data-i="'+i+'" data-l="'+k+'">'+ROLES.map(r=>'<option'+(r==l.who?' selected':'')+'>'+r+'</option>').join('')+'</select><textarea data-f="text" data-i="'+i+'" data-l="'+k+'" placeholder="Teks">'+esc(l.text)+'</textarea><button class="ic dng" data-a="rml" data-i="'+i+'" data-l="'+k+'">✕</button></div>'});
+    h+='<div class="acts"><button class="btn o sm" data-a="addl" data-i="'+i+'">+ Baris litani</button></div>';
+  }
+  return h+'</div>';
+}
+function render(){
+  let h='<header><h1>⛪ Liturgi Ibadah</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
+  if(S.admin&&S.view!='edit')h+='<div class="seg"><button data-a="tab" data-v="jemaat" class="'+(S.tab=='jemaat'?'on':'')+'">Jemaat</button><button data-a="tab" data-v="admin" class="'+(S.tab=='admin'?'on':'')+'">Admin</button></div>';
+  h+='</header><main>';
+  const L=[...D.liturgies].sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||''));
+  const gate=S.admin&&S.tab=='admin'&&S.view=='list'&&(!S.un||S.chg);
+  if(gate){h+=lockCard()}else if(S.view=='list'){
+    if(S.tab=='admin')h+='<div class="row" style="margin-bottom:12px"><span class="sp mut">Kelola liturgi</span><button class="btn o" data-a="exp">Ekspor</button><button class="btn o" data-a="imp">Impor</button><button class="btn" data-a="new">+ Liturgi baru</button></div>';
+    if(!L.length)h+='<p class="mut">Belum ada liturgi.</p>';
+    L.forEach(x=>{
+      h+='<div class="card item" data-a="open" data-id="'+x.id+'"><h3>'+esc(x.judul)+'</h3><div class="mut">'+meta(x)+'</div>';
+      if(S.tab=='admin')h+='<div class="row acts"><button class="btn o sm" data-a="edit" data-id="'+x.id+'">Edit</button><button class="btn o sm" data-a="dup" data-id="'+x.id+'">Duplikat</button><button class="btn d sm" data-a="del" data-id="'+x.id+'">'+(S.cf==x.id?'Yakin hapus?':'Hapus')+'</button></div>';
+      h+='</div>';
+    });
+  }else if(S.view=='detail'){
+    const x=D.liturgies.find(y=>y.id==S.id);
+    if(x){h+='<button class="btn o sm" data-a="back">← Kembali</button><div class="card" style="margin-top:12px"><h2 style="margin:0 0 4px">'+esc(x.judul)+'</h2><div class="mut">'+meta(x)+'</div></div><div class="prog"><span id="prog"></span><button class="btn o sm" data-a="next">↓ Lanjut</button><button class="btn o sm" data-a="rstdn">Reset</button></div><div class="card">'+x.points.map(pt).join('')+(x.points.length?'':'<p class="mut">Belum ada point.</p>')+'</div>'}
+  }else{
+    const e=S.edit;
+    h+='<div class="card"><label>Judul ibadah<input data-f="judul" value="'+esc(e.judul)+'"></label><label>Tanggal<input type="date" data-f="tanggal" value="'+esc(e.tanggal)+'"></label><label>Jam pelaksanaan<input type="time" data-f="jam" value="'+esc(e.jam)+'"></label><label>Lokasi<input data-f="lokasi" value="'+esc(e.lokasi)+'"></label></div>';
+    h+=e.points.map(edPt).join('');
+    h+='<div class="card"><div class="tag" style="margin-bottom:8px">Tambah point</div><div class="add"><button class="btn o" data-a="add" data-t="point">Point saja</button><button class="btn o" data-a="add" data-t="lagu">Menyanyikan lagu</button><button class="btn o" data-a="add" data-t="litani">Litani</button><button class="btn o" data-a="add" data-t="desk">Point + Deskripsi</button></div></div>';
+    h+='<div class="bar"><button class="btn o" data-a="cancel">Batal</button><button class="btn" data-a="save">Simpan</button></div>';
+  }
+  if(S.view=='detail')setTimeout(upProg,0);
+  $('app').innerHTML=h+'</main>'+(S.zoom?'<div class="ov"><button class="btn sm" data-a="closeov">Tutup ✕</button><img data-a="zoomtog" src="'+esc(S.zoom)+'" alt=""></div>':'');
+}
+document.addEventListener('input',e=>{
+  const t=e.target,f=t.dataset.f;if(!f||!S.edit)return;
+  if(t.dataset.i==null)S.edit[f]=t.value;
+  else{const p=S.edit.points[t.dataset.i];if(t.dataset.l!=null)p.lines[t.dataset.l][f]=t.value;else p[f]=t.value}
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;
+  const a=b.dataset.a,id=b.dataset.id,i=+b.dataset.i,E=S.edit;
+  if(['new','edit','dup','del','save','add','up','dn','rm','addl','rml','chpin','exp','imp','upimg','rmimg'].includes(a)&&!(S.admin&&S.un))return;
+  if(a=='unlock')return doLogin();
+  if(a=='open'&&!e.target.closest('button')){S.view='detail';S.id=id;S.dn=ld(id)}
+  else if(a=='exp'){const bl=new Blob([JSON.stringify({liturgies:D.liturgies},null,1)],{type:'application/json'});const l=document.createElement('a');l.href=URL.createObjectURL(bl);l.download='liturgi-backup.json';l.click();return}
+  else if(a=='imp'){const f=document.createElement('input');f.type='file';f.accept='.json';f.onchange=()=>{const fl=f.files[0];if(!fl)return;fl.text().then(t=>{try{const j=JSON.parse(t);if(!Array.isArray(j.liturgies))throw 0;D.liturgies=j.liturgies;j.liturgies.forEach(x=>persist(x))}catch(e){toast('File tidak valid')}})};f.click();return}
+  else if(a=='mark'){const pid=b.dataset.pid,k=S.dn.indexOf(pid),d=k<0;d?S.dn.push(pid):S.dn.splice(k,1);sv(S.id,S.dn);b.closest('.pt').classList.toggle('done',d);b.querySelector('.n').textContent=d?'✓':b.dataset.n;upProg();return}
+  else if(a=='rstdn'){S.dn=[];sv(S.id,S.dn)}
+  else if(a=='next'){const el=document.querySelector('.pt:not(.done)');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});else toast('Semua point sudah selesai');return}
+  else if(a=='zoom'){S.zoom=b.getAttribute('src')}
+  else if(a=='zoomtog'){document.querySelector('.ov').classList.toggle('z');return}
+  else if(a=='closeov'){S.zoom=null}
+  else if(a=='rmimg'){E.points[i].imgs.splice(+b.dataset.l,1)}
+  else if(a=='upimg'){const f=document.createElement('input');f.type='file';f.accept='image/*';f.multiple=true;f.onchange=async()=>{const p=E.points[i];p.imgs=p.imgs||[];toast('Mengunggah gambar...');for(const fl of f.files){try{p.imgs.push(await upl(fl))}catch(e){toast('Gagal unggah: '+(e.message||'gambar'))}}render()};f.click();return}
+  else if(a=='lock'){if(sb)sb.auth.signOut();S.un=false;S.view='list';S.tab='jemaat';ss('lt',null)}
+  else if(a=='theme'){P.th=P.th=='auto'?'light':P.th=='light'?'dark':'auto';applyP()}
+  else if(a=='fs'){P.fs=Math.min(1.4,Math.max(.85,+(P.fs+(+b.dataset.v)).toFixed(2)));applyP()}
+  else if(a=='tab'){S.tab=b.dataset.v;S.cf=null;S.chg=false;ss('lt',S.tab)}
+  else if(a=='back'){S.view='list'}
+  else if(a=='new'){S.edit={id:uid(),judul:'',tanggal:new Date().toISOString().slice(0,10),lokasi:'',jam:'',points:[]};S.view='edit'}
+  else if(a=='edit'){S.edit=JSON.parse(JSON.stringify(D.liturgies.find(y=>y.id==id)));S.view='edit'}
+  else if(a=='dup'){const c=JSON.parse(JSON.stringify(D.liturgies.find(y=>y.id==id)));c.id=uid();c.judul+=' (Salinan)';c.points.forEach(p=>p.id=uid());D.liturgies.push(c);return persist(c)}
+  else if(a=='del'){if(S.cf==id){D.liturgies=D.liturgies.filter(y=>y.id!=id);S.cf=null;return persist(null,id)}S.cf=id}
+  else if(a=='cancel'){S.edit=null;S.view='list'}
+  else if(a=='save'){
+    if(!E.judul.trim()){toast('Judul ibadah wajib diisi');return}
+    const k=D.liturgies.findIndex(y=>y.id==E.id);if(k<0)D.liturgies.push(E);else D.liturgies[k]=E;
+    S.edit=null;S.view='list';return persist(E);
+  }
+  else if(a=='add'){const t=b.dataset.t,p={id:uid(),type:t,title:''};if(t=='litani')p.lines=[{who:'Pendeta',text:''}];E.points.push(p)}
+  else if(a=='up'&&i>0){[E.points[i-1],E.points[i]]=[E.points[i],E.points[i-1]]}
+  else if(a=='dn'&&i<E.points.length-1){[E.points[i+1],E.points[i]]=[E.points[i],E.points[i+1]]}
+  else if(a=='rm'){E.points.splice(i,1)}
+  else if(a=='addl'){const ls=E.points[i].lines;const last=ls[ls.length-1];ls.push({who:last&&last.who=='Pendeta'?'Jemaat':'Pendeta',text:''})}
+  else if(a=='rml'){E.points[i].lines.splice(+b.dataset.l,1)}
+  render();
+});
+document.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.id&&e.target.id.indexOf('pin')==0){const b=document.querySelector('[data-a=setpin],[data-a=unlock]');if(b)b.click()}});
+applyP();render();
+(async()=>{
+  S.admin=true;if(sg('lt')=='admin')S.tab='admin';
+  if(!sb){render();toast('Isi URL dan anon key Supabase di file ini');return}
+  const {data}=await sb.auth.getSession();S.un=!!data.session;
+  sb.auth.onAuthStateChange((ev,ses)=>{const u=!!ses;if(u!=S.un){S.un=u;render()}});
+  render();await loadAll();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.view!='edit')loadAll()});
+})();
+</script></body></html>
