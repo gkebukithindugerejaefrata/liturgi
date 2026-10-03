@@ -25,12 +25,28 @@ button{font:inherit;cursor:pointer}.btn{background:var(--pri);color:#fff;border:
 .hero-banner .placeholder{width:100%;height:100%;min-height:200px;display:grid;place-items:center;color:var(--mut);font-size:14px;background:linear-gradient(135deg,var(--pri2),var(--bg));border-radius:14px}
 .item-hero{height:100%;width:auto;max-width:100%;max-height:315px;object-fit:contain;display:block;margin:0 auto;border-radius:14px 14px 0 0}
 .card.item{padding-top:0;overflow:hidden}
-.liturgy-card{display:flex;flex-direction:column;overflow:hidden}
-.liturgy-card-image{width:100%;overflow:hidden;background:var(--pri2);display:flex;align-items:center;justify-content:center}
-.liturgy-card-image .item-hero{width:100%;height:auto;max-height:315px;object-fit:cover;display:block;margin:0;border-radius:0}
-.liturgy-card-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px}
-.liturgy-card-info .liturgy-title{margin:0 0 6px;font-size:17px;line-height:1.3}
-.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:2px}
+.liturgy-card{display:flex;flex-direction:column;overflow:hidden;padding:0 !important;border-radius:14px}
+.liturgy-card-image{position:relative;width:100%;aspect-ratio:851/315;overflow:hidden;background:var(--card);border-bottom:1px solid var(--bd);display:block}
+.liturgy-card-image.global-style{aspect-ratio:851/315;max-width:100%;box-shadow:none;border-radius:14px 14px 0 0}
+.liturgy-card-image .item-hero{width:100%;height:100%;object-fit:cover;display:block;border-radius:14px 14px 0 0;margin:0}
+.liturgy-card-image .liturgy-card-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.25));pointer-events:none;border-radius:14px 14px 0 0}
+.liturgy-card-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;background:var(--card)}
+.liturgy-card-info .liturgy-title{margin:0 0 4px;font-size:17px;font-weight:700;line-height:1.35}
+.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:3px}
+.liturgy-card-info .liturgy-meta .mut{font-size:13px;line-height:1.4}
+.liturgy-card-info .acts{margin-top:8px}
+
+.liturgy-card{display:flex;flex-direction:column;overflow:hidden;padding:0 !important;border-radius:14px}
+.liturgy-card-image{position:relative;width:100%;aspect-ratio:851/315;overflow:hidden;background:var(--card);border-bottom:1px solid var(--bd);display:block}
+.liturgy-card-image.global-style{aspect-ratio:851/315;max-width:100%;box-shadow:none;border-radius:14px 14px 0 0}
+.liturgy-card-image .item-hero{width:100%;height:100%;object-fit:cover;display:block;border-radius:14px 14px 0 0;margin:0}
+.liturgy-card-image .liturgy-card-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.25));pointer-events:none;border-radius:14px 14px 0 0}
+.liturgy-card-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;background:var(--card)}
+.liturgy-card-info .liturgy-title{margin:0 0 4px;font-size:17px;font-weight:700;line-height:1.35}
+.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:3px}
+.liturgy-card-info .liturgy-meta .mut{font-size:13px;line-height:1.4}
+.liturgy-card-info .acts{margin-top:8px}
+
 
 .global-hero{margin-bottom:18px;box-shadow:0 4px 16px rgba(0,0,0,.12);border-radius:14px;display:block;overflow:hidden;aspect-ratio:851/315;position:relative;width:100%;max-width:851px;background:var(--card);border:1px solid var(--bd)}
 .global-hero img{width:100%;height:100%;object-fit:cover;display:block;border-radius:14px}
@@ -334,7 +350,7 @@ function edPt(p,i){
   return h+'</div>';
 }
 function render(){
-  let h='<header><h1>LITURGI IBADAH</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
+  let h='<header><h1>⛪ Liturgi Ibadah</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
   if(S.admin&&S.view!='edit')h+='<div class="seg"><button data-a="tab" data-v="jemaat" class="'+(S.tab=='jemaat'?'on':'')+'">Jemaat</button><button data-a="tab" data-v="admin" class="'+(S.tab=='admin'?'on':'')+'">Admin</button></div>';
   h+='</header><main>';
   const L=[...D.liturgies].sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||''));
@@ -362,9 +378,15 @@ function render(){
       const jam = x.jam ? String(x.jam).replace(':','.')+' WIB' : '';
       h+='<div class="card item liturgy-card" data-a="open" data-id="'+x.id+'">';
       if(hasHeader){
-        h+='<div class="liturgy-card-image"><img class="item-hero" src="'+esc(hasHeader)+'" alt="Header '+esc(x.judul)+'"></div>';
+        h+='<div class="liturgy-card-image global-style"><img class="item-hero" src="'+esc(hasHeader)+'" alt="Header '+esc(x.judul)+'"><div class="liturgy-card-overlay"></div></div>';
       }
-      h+='<div class="liturgy-card-info"><h3 class="liturgy-title">'+esc(x.judul)+'</h3><div class="liturgy-meta"><div class="mut">📅 '+esc(tgl)+(jam?' · 🕐 '+esc(jam):'')+'</div><div class="mut">📍 '+esc(x.lokasi||'')+'</div></div>';
+      h+='<div class="liturgy-card-info">';
+      h+='<h3 class="liturgy-title">'+esc(x.judul||'Tanpa Judul')+'</h3>';
+      h+='<div class="liturgy-meta">';
+      if(tgl) h+='<div class="mut">📅 '+esc(tgl)+'</div>';
+      if(jam) h+='<div class="mut">🕐 '+esc(jam)+'</div>';
+      if(x.lokasi && x.lokasi.trim()) h+='<div class="mut">📍 '+esc(x.lokasi)+'</div>';
+      h+='</div>';
       if(S.tab=='admin')h+='<div class="row acts"><button class="btn o sm" data-a="edit" data-id="'+x.id+'">Edit</button><button class="btn o sm" data-a="dup" data-id="'+x.id+'">Duplikat</button><button class="btn d sm" data-a="del" data-id="'+x.id+'">'+(S.cf==x.id?'Yakin hapus?':'Hapus')+'</button></div>';
       h+='</div></div>';
     });
