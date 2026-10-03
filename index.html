@@ -23,8 +23,15 @@ button{font:inherit;cursor:pointer}.btn{background:var(--pri);color:#fff;border:
 .hero-banner.cover img{width:100%;height:100%;object-fit:cover}
 
 .hero-banner .placeholder{width:100%;height:100%;min-height:200px;display:grid;place-items:center;color:var(--mut);font-size:14px;background:linear-gradient(135deg,var(--pri2),var(--bg));border-radius:14px}
-.item-hero{height:100%;width:auto;max-height:315px;object-fit:contain;display:block;margin:0 auto;border-radius:14px 14px 0 0}
+.item-hero{height:100%;width:auto;max-width:100%;max-height:315px;object-fit:contain;display:block;margin:0 auto;border-radius:14px 14px 0 0}
 .card.item{padding-top:0;overflow:hidden}
+.liturgy-card{display:flex;flex-direction:column;overflow:hidden}
+.liturgy-card-image{width:100%;overflow:hidden;background:var(--pri2);display:flex;align-items:center;justify-content:center}
+.liturgy-card-image .item-hero{width:100%;height:auto;max-height:315px;object-fit:cover;display:block;margin:0;border-radius:0}
+.liturgy-card-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px}
+.liturgy-card-info .liturgy-title{margin:0 0 6px;font-size:17px;line-height:1.3}
+.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:2px}
+
 .global-hero{margin-bottom:18px;box-shadow:0 4px 16px rgba(0,0,0,.12);border-radius:14px;display:block;overflow:hidden;aspect-ratio:851/315;position:relative;width:100%;max-width:851px;background:var(--card);border:1px solid var(--bd)}
 .global-hero img{width:100%;height:100%;object-fit:cover;display:block;border-radius:14px}
 .global-hero .overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.35));pointer-events:none;border-radius:14px}
@@ -176,18 +183,18 @@ function buildF4Html(x){
   return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title> </title>
 <style>
 @page{size:215mm 330mm;margin:10mm 16mm 10mm 18mm;@bottom-right{content:"Hal. " counter(page);font-size:8pt;font-family:"Myriad Pro",sans-serif;}}
-*{box-sizing:border-box}body{margin:0;padding:0;background:#fff;color:#000;font:11pt/1.6 "Myriad Pro",Myriad,sans-serif}
+*{box-sizing:border-box}body{margin:0;padding:0;background:#fff;color:#000;font:11pt/1.2 "Myriad Pro",Myriad,sans-serif}
 .header-f4{border-bottom:1.5pt solid #000;padding-bottom:10pt;margin-bottom:14pt;display:flex;gap:12pt;align-items:flex-start;}
 .logo-gke{width:52pt;height:52pt;object-fit:contain;flex:none;}
 .info-left{flex:1;text-align:left;}
-.info-left .judul-ibadah{font-size:11pt;font-weight:700;line-height:1.25;margin-bottom:4pt;}
-.info-left .meta-line{font-size:11pt;line-height:1.35;margin:1pt 0;}
+.info-left .judul-ibadah{font-size:11pt;font-weight:700;line-height:1.2;margin-bottom:4pt;}
+.info-left .meta-line{font-size:11pt;line-height:1.2;margin:1pt 0;}
 .point-item{margin-bottom:8pt;break-inside:auto} .point-title{font-weight:700;font-size:11pt;margin-bottom:3pt;}
-.ref-lampiran{font-size:11pt;font-style:italic;color:#555} .d{white-space:pre-wrap;margin-top:3pt;font-size:11pt;text-align:justify;line-height:1.55}
-.ln{display:grid;grid-template-columns:62pt 8pt 1fr;gap:3pt;margin:3pt 0;font-size:11pt;line-height:1.55} .ln .who{white-space:nowrap} .ln .colon{text-align:center} .ln .txt{text-align:justify;white-space:pre-wrap;}
+.ref-lampiran{font-size:11pt;font-style:italic;color:#555} .d{white-space:pre-wrap;margin-top:3pt;font-size:11pt;text-align:justify;line-height:1.2}
+.ln{display:grid;grid-template-columns:62pt 8pt 1fr;gap:3pt;margin:3pt 0;font-size:11pt;line-height:1.2} .ln .who{white-space:nowrap} .ln .colon{text-align:center} .ln .txt{text-align:justify;white-space:pre-wrap;}
 .lagu-appendix{margin-top:16pt;border-top:1pt solid #000;padding-top:10pt} .appendix-title{font-weight:700;font-size:11pt;text-align:center;margin-bottom:8pt}
 .lagu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10pt} .lagu-mini-card{break-inside:avoid;border:0.5pt solid #bbb;border-radius:3pt;padding:6pt}
-.lagu-mini-title{font-weight:700;font-size:11pt;margin-bottom:3pt} .nt-mini{width:100%;max-width:100%;height:auto;max-height:26vh;object-fit:contain;margin:3pt 0;display:block} .d-mini{white-space:pre-wrap;font-size:11pt;text-align:justify;line-height:1.5}
+.lagu-mini-title{font-weight:700;font-size:11pt;margin-bottom:3pt} .nt-mini{width:100%;max-width:100%;height:auto;max-height:26vh;object-fit:contain;margin:3pt 0;display:block} .d-mini{white-space:pre-wrap;font-size:11pt;text-align:justify;line-height:1.2}
 </style></head><body>
 <div class="header-f4">
   <img class="logo-gke" src="${logoSrc}" alt="Logo GKE">
@@ -203,14 +210,42 @@ function buildF4Html(x){
 <script>window.onload=()=>{setTimeout(()=>{window.print()},500)};<\/script>
 </body></html>`;
 }
-let _pdfLock=false;
+
+function buildF4HalfSuperMepetHtml(x){
+  let html = buildF4Html(x);
+  html = html.replace('size:215mm 330mm;', 'size:165mm 215mm;');
+  // FIX: Sertakan keterangan halaman pojok kanan bawah + margin bawah lebih besar untuk space nomor
+  html = html.replace(/@page\s*\{[^}]*\}/, '@page{ size:165mm 215mm; margin-top:4mm; margin-bottom:10mm; margin-left:6mm; margin-right:6mm; @bottom-right{content:"Hal. " counter(page);font-size:8pt;font-family:"Myriad Pro",sans-serif;} }');
+  // FONT 11PT UNTUK BOOKFOLD F4 - SESUAI REQUEST
+  html = html.replace('</style>', `
+    body{ font:11pt/1.2 "Myriad Pro",Myriad,sans-serif !important; }
+    .point-item{margin-bottom:3pt} 
+    .point-title{font-size:11pt !important; line-height:1.2} 
+    .d{font-size:11pt !important; line-height:1.2} 
+    .ln{font-size:11pt !important; margin:1.5pt 0; gap:2pt; line-height:1.2} 
+    .ln b{font-size:0.75rem; padding:3px 8px} 
+    .header-f4{margin-bottom:5pt; padding-bottom:4pt} 
+    .info-left .judul-ibadah{font-size:11pt !important}
+    .info-left .meta-line{font-size:11pt !important}
+    .ref-lampiran{font-size:11pt !important}
+    .lagu-mini-title{font-size:11pt !important}
+    .d-mini{font-size:11pt !important}
+    /* Pastikan footer halaman terlihat */
+    @media print {
+      @page { @bottom-right{content:"Hal. " counter(page); font-size:8pt;} }
+    }
+  </style>`);
+  html = html.replace(/<title>.*?<\/title>/i, '<title>'+ (x.judul||'Liturgi') +' - Bookfold F4 11pt</title>');
+  return html;
+}
+
 function openF4Pdf(){
-  if(_pdfLock){ toast('PDF sedang diproses...'); return; }
-  _pdfLock=true;
-  const x=D.liturgies.find(y=>y.id==S.id); if(!x){ _pdfLock=false; return; }
+  if(window._pdfLock){ toast('PDF sedang diproses...'); return; }
+  window._pdfLock=true;
+  const x=D.liturgies.find(y=>y.id==S.id); if(!x){ window._pdfLock=false; return; }
   let html=buildF4Html(x);
   html = html.replace(/<script>window\.onload[\s\S]*?<\/script>/gi, '');
-  const safeTitle = (x.judul||'Liturgi').trim().replace(/[<>]/g,'').slice(0,120);
+  const safeTitle = ((x.judul||'Liturgi')+' - F4 11pt').trim().replace(/[<>]/g,'').slice(0,120);
   html = html.replace(/<title>.*?<\/title>/i, '<title>'+safeTitle.replace(/"/g,'')+'</title>');
   let ifr=document.getElementById('pdf-ifr'); if(ifr) ifr.remove();
   ifr=document.createElement('iframe'); ifr.id='pdf-ifr';
@@ -228,16 +263,47 @@ function openF4Pdf(){
     try{ doc.title = safeTitle; }catch(e){}
     try{ ifr.contentWindow.document.title = safeTitle; }catch(e){}
     try{ document.title = safeTitle; }catch(e){}
-    try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }catch(e){}
-    setTimeout(()=>{
-      try{ document.title = origParentTitle; }catch(e){}
-      _pdfLock=false; 
-      try{ifr.remove();}catch(e){}
-    }, 2000);
+    try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }catch(e){ console.error(e); }
+    setTimeout(()=>{ try{ document.title = origParentTitle; }catch(e){} window._pdfLock=false; try{ifr.remove();}catch(e){} }, 2000);
   };
   ifr.onload=()=>{ setTimeout(doPrint, 800); };
   setTimeout(()=>{ if(!done) doPrint(); }, 2000);
 }
+
+function openF4HalfSuperMepetPdf(){
+  if(window._pdfLock){ toast('PDF sedang diproses...'); return; }
+  window._pdfLock=true;
+  const x=D.liturgies.find(y=>y.id==S.id); if(!x){ window._pdfLock=false; return; }
+  let html=buildF4HalfSuperMepetHtml(x);
+  html = html.replace(/<script>window\.onload[\s\S]*?<\/script>/gi, '');
+  const safeTitle = ((x.judul||'Liturgi')+' - Super Mepet').trim().replace(/[<>]/g,'').slice(0,120);
+  html = html.replace(/<title>.*?<\/title>/i, '<title>'+safeTitle.replace(/"/g,'')+'</title>');
+  let ifr=document.getElementById('pdf-ifr'); if(ifr) ifr.remove();
+  ifr=document.createElement('iframe'); ifr.id='pdf-ifr';
+  ifr.style.position='fixed'; ifr.style.left='-9999px'; ifr.style.top='0';
+  ifr.style.width='0'; ifr.style.height='0'; ifr.style.border='0';
+  document.body.appendChild(ifr);
+  const doc=ifr.contentDocument||ifr.contentWindow.document;
+  doc.open();doc.write(html);doc.close();
+  const origParentTitle = document.title;
+  try{ doc.title = safeTitle; }catch(e){}
+  try{ document.title = safeTitle; }catch(e){}
+  let done=false;
+  const doPrint=()=>{
+    if(done) return; done=true;
+    try{ doc.title = safeTitle; }catch(e){}
+    try{ ifr.contentWindow.document.title = safeTitle; }catch(e){}
+    try{ document.title = safeTitle; }catch(e){}
+    try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }catch(e){ console.error(e); }
+    setTimeout(()=>{ try{ document.title = origParentTitle; }catch(e){} window._pdfLock=false; try{ifr.remove();}catch(e){} }, 2000);
+  };
+  ifr.onload=()=>{ setTimeout(doPrint, 800); };
+  setTimeout(()=>{ if(!done) doPrint(); }, 2000);
+}
+
+
+
+
 function pt(p,i){
 
   const dn=S.dn.includes(p.id);
@@ -268,7 +334,7 @@ function edPt(p,i){
   return h+'</div>';
 }
 function render(){
-  let h='<header><h1>⛪ Liturgi Ibadah</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
+  let h='<header><h1>LITURGI IBADAH</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
   if(S.admin&&S.view!='edit')h+='<div class="seg"><button data-a="tab" data-v="jemaat" class="'+(S.tab=='jemaat'?'on':'')+'">Jemaat</button><button data-a="tab" data-v="admin" class="'+(S.tab=='admin'?'on':'')+'">Admin</button></div>';
   h+='</header><main>';
   const L=[...D.liturgies].sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||''));
@@ -291,30 +357,25 @@ function render(){
     if(S.tab=='admin')h+='<div class="row" style="margin-bottom:12px"><span class="sp mut">Kelola liturgi</span><button class="btn o" data-a="exp">Ekspor</button><button class="btn o" data-a="imp">Impor</button><button class="btn" data-a="new">+ Liturgi baru</button><button class="btn d sm" data-a="lock">Logout</button></div>';
     if(!L.length)h+='<p class="mut">Belum ada liturgi.</p>';
     L.forEach(x=>{
-      const hasHeader = x.headerImg || x.banner || '';
-      const tgl = x.tanggal ? esc(fd(x.tanggal)) : '';
-      const jam = x.jam ? esc(String(x.jam).replace(':','.')) : '';
-      const lok = esc(x.lokasi||'');
-      let chips = '';
-      if(tgl) chips += '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--pri2);border:1px solid var(--bd);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px">📅 '+tgl+'</span>';
-      if(jam) chips += '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--pri2);border:1px solid var(--bd);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px">⏰ '+jam+' WIB</span>';
-      if(lok) chips += '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--pri2);border:1px solid var(--bd);border-radius:999px;padding:2px 10px;font-size:12px">📍 '+lok+'</span>';
-      if(!chips) chips = '<span class="mut">'+esc((x.points||[]).length+' point')+'</span>';
+      const hasHeader = x.headerImg || x.banner;
+      const tgl = x.tanggal ? fd(x.tanggal) : '';
+      const jam = x.jam ? String(x.jam).replace(':','.')+' WIB' : '';
+      h+='<div class="card item liturgy-card" data-a="open" data-id="'+x.id+'">';
       if(hasHeader){
-        h+='<div class="card item" data-a="open" data-id="'+x.id+'" style="padding-top:0;overflow:hidden">'
-          +'<img class="item-hero" src="'+esc(hasHeader)+'" alt="Header '+esc(x.judul)+'" style="width:100%;height:auto;max-height:240px;object-fit:cover;display:block;margin:0 -14px 0 -14px;width:calc(100% + 28px);border-radius:14px 14px 0 0">'
-          +'<div style="padding:12px 0 2px"><h3 style="margin:0 0 8px;font-size:17px;font-weight:700">'+esc(x.judul)+'</h3><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">'+chips+'</div></div>';
-      }else{
-        h+='<div class="card item" data-a="open" data-id="'+x.id+'">'
-          +'<h3 style="margin:0 0 8px;font-size:17px;font-weight:700">'+esc(x.judul)+'</h3><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">'+chips+'</div>';
+        h+='<div class="liturgy-card-image"><img class="item-hero" src="'+esc(hasHeader)+'" alt="Header '+esc(x.judul)+'"></div>';
       }
+      h+='<div class="liturgy-card-info"><h3 class="liturgy-title">'+esc(x.judul)+'</h3><div class="liturgy-meta"><div class="mut">📅 '+esc(tgl)+(jam?' · 🕐 '+esc(jam):'')+'</div><div class="mut">📍 '+esc(x.lokasi||'')+'</div></div>';
       if(S.tab=='admin')h+='<div class="row acts"><button class="btn o sm" data-a="edit" data-id="'+x.id+'">Edit</button><button class="btn o sm" data-a="dup" data-id="'+x.id+'">Duplikat</button><button class="btn d sm" data-a="del" data-id="'+x.id+'">'+(S.cf==x.id?'Yakin hapus?':'Hapus')+'</button></div>';
-      h+='</div>';
+      h+='</div></div>';
     });
   }else if(S.view=='detail'){
     const x=D.liturgies.find(y=>y.id==S.id);
     if(x){
-      h+='<div class="row" style="margin-bottom:10px"><button class="btn o sm" data-a="back">← Kembali</button><span class="sp"></span><button class="btn o sm" data-a="pdff4">📄 PDF F4</button></div>';
+      h+='<div class="row" style="margin-bottom:10px"><button class="btn o sm" data-a="back">← Kembali</button><span class="sp"></span></div>'
+      +'<div class="card" style="padding:10px"><div class="tag" style="margin-bottom:8px">📚 Cetak PDF</div><div class="row" style="gap:8px;flex-wrap:wrap">'
+      +'<button class="btn o sm" data-a="pdff4">📄 F4 (215x330)</button>'
+      +'<button class="btn o sm" data-a="pdff4super">📗 Bookfold F4</button>'
+      +'</div></div>';
       // HEADER IMAGE PER LITURGI - beda liturgi beda image
       if(x.headerImg){
         h+='<div class="hero-banner" style="margin-bottom:12px"><img src="'+esc(x.headerImg)+'" alt="Header '+esc(x.judul)+'" style="width:100%;height:100%;object-fit:cover"></div>';
@@ -357,6 +418,7 @@ document.addEventListener('click',async e=>{
   else if(a=='mark'){const pid=b.dataset.pid,k=S.dn.indexOf(pid),d=k<0;d?S.dn.push(pid):S.dn.splice(k,1);sv(S.id,S.dn);b.closest('.pt').classList.toggle('done',d);b.querySelector('.n').textContent=d?'✓':b.dataset.n;upProg();return}
   else if(a=='rstdn'){S.dn=[];sv(S.id,S.dn)}
   else if(a=='pdff4'){openF4Pdf();return}
+  else if(a=='pdff4super'){openF4HalfSuperMepetPdf();return}
   else if(a=='next'){const el=document.querySelector('.pt:not(.done)');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});else toast('Semua point sudah selesai');return}
   else if(a=='zoom'){S.zoom=b.getAttribute('src')}
   else if(a=='zoomtog'){document.querySelector('.ov').classList.toggle('z');return}
