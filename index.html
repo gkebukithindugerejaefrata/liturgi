@@ -122,7 +122,7 @@ function edPt(p,i){
   return h+'</div>';
 }
 function render(){
-  let h='<header><h1>⛪ Liturgi Ibadah</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
+  let h='<header><h1>LITURGI IBADAH</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
   if(S.admin&&S.view!='edit')h+='<div class="seg"><button data-a="tab" data-v="jemaat" class="'+(S.tab=='jemaat'?'on':'')+'">Jemaat</button><button data-a="tab" data-v="admin" class="'+(S.tab=='admin'?'on':'')+'">Admin</button></div>';
   h+='</header><main>';
   const L=[...D.liturgies].sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||''));
