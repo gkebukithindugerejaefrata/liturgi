@@ -32,9 +32,9 @@ button{font:inherit;cursor:pointer}.btn{background:var(--pri);color:#fff;border:
 .liturgy-card-image .liturgy-card-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.25));pointer-events:none;border-radius:14px 14px 0 0}
 .liturgy-card-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;background:var(--card)}
 .liturgy-card-info .liturgy-title{margin:0 0 4px;font-size:17px;font-weight:700;line-height:1.35}
-.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:3px;flex:1}
-.liturgy-card-info .liturgy-meta .mut{font-size:13px;line-height:1.4}
-.liturgy-card-info .liturgy-bottom-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
+.liturgy-card-info .liturgy-meta{display:flex;flex-direction:row;gap:8px;flex:1;flex-wrap:wrap;align-items:center}
+.liturgy-card-info .liturgy-meta .mut{font-size:13px;line-height:1.4;white-space:nowrap}
+.liturgy-card-info .liturgy-bottom-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
 .liturgy-card-info .liturgy-share{display:flex;gap:6px;align-items:center;flex-shrink:0}
 .liturgy-card-info .acts{margin-top:8px}
 @media(max-width:380px){.liturgy-card-info .liturgy-bottom-row{flex-direction:column;align-items:flex-start}}
@@ -46,9 +46,9 @@ button{font:inherit;cursor:pointer}.btn{background:var(--pri);color:#fff;border:
 .liturgy-card-image .liturgy-card-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.25));pointer-events:none;border-radius:14px 14px 0 0}
 .liturgy-card-info{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;background:var(--card)}
 .liturgy-card-info .liturgy-title{margin:0 0 4px;font-size:17px;font-weight:700;line-height:1.35}
-.liturgy-card-info .liturgy-meta{display:flex;flex-direction:column;gap:3px;flex:1}
-.liturgy-card-info .liturgy-meta .mut{font-size:13px;line-height:1.4}
-.liturgy-card-info .liturgy-bottom-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
+.liturgy-card-info .liturgy-meta{display:flex;flex-direction:row;gap:8px;flex:1;flex-wrap:wrap;align-items:center}
+.liturgy-card-info .liturgy-meta .mut{font-size:13px;line-height:1.4;white-space:nowrap}
+.liturgy-card-info .liturgy-bottom-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px}
 .liturgy-card-info .liturgy-share{display:flex;gap:6px;align-items:center;flex-shrink:0}
 .liturgy-card-info .acts{margin-top:8px}
 @media(max-width:380px){.liturgy-card-info .liturgy-bottom-row{flex-direction:column;align-items:flex-start}}
@@ -407,7 +407,7 @@ function render(){
   let h='<header><h1>Liturgi Ibadah</h1><div class="tg"><button data-a="fs" data-v="-0.1" aria-label="Perkecil tulisan">A−</button><button data-a="fs" data-v="0.1" aria-label="Perbesar tulisan">A+</button>'+(S.admin&&S.un&&S.tab=='admin'?'<button data-a="lock">Keluar</button>':'')+'<button data-a="theme">'+({auto:'🌓 Auto',light:'☀️ Terang',dark:'🌙 Gelap'})[P.th]+'</button></div>';
   if(S.admin&&S.view!='edit')h+='<div class="seg"><button data-a="tab" data-v="jemaat" class="'+(S.tab=='jemaat'?'on':'')+'">Jemaat</button><button data-a="tab" data-v="admin" class="'+(S.tab=='admin'?'on':'')+'">Admin</button></div>';
   h+='</header><main>';
-  const L=[...D.liturgies].sort((a,b)=>(b.tanggal||'').localeCompare(a.tanggal||''));
+  const L=[...D.liturgies].sort((a,b)=>(a.tanggal||'').localeCompare(b.tanggal||''));
   const gate=S.admin&&S.tab=='admin'&&S.view=='list'&&(!S.un||S.chg);
   if(gate){h+=lockCard()}else if(S.view=='list'){
         // GLOBAL HEADER CUSTOM UNTUK TAMPILAN AWAL - kalau gak ada tidak usah ditampilkan untuk jemaat, admin lihat tombol upload
