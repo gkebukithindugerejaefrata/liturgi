@@ -21,11 +21,11 @@ button{font:inherit;cursor:pointer}.btn{background:var(--pri);color:#fff;border:
 .hd{display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .n{flex:none;width:32px;height:32px;border-radius:50%;background:var(--pri2);color:var(--pri);display:grid;place-items:center;font-weight:700;font-size:.875rem;line-height:1}
 .ht{flex:1;min-width:0}.t{font-weight:600;line-height:1.35}.tag{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--pri);font-weight:700;line-height:1.2}
-.bd{padding:2px 0 8px 44px}.bd.lt{padding-left:0}.bd .nt{margin-left:-44px;width:calc(100% + 44px)}
+.bd{padding:2px 0 8px 44px}.bd.lt{padding-left:0}.bd.lt .nt{margin-left:0;width:100%}.bd .nt{margin-left:-44px;width:calc(100% + 44px)}
 .pt.done .n{background:var(--r3);color:var(--bg)}.pt.done .t{text-decoration:line-through;opacity:.6}.pt.done .bd{opacity:.5}
 .prog{display:flex;align-items:center;gap:8px;margin-bottom:12px}.prog span{flex:1;font-size:.875rem;color:var(--mut)}
 .d{margin:4px 0 0;white-space:pre-wrap;color:var(--mut)}
-.ln{display:flex;gap:10px;padding:9px 0;white-space:pre-wrap;align-items:flex-start}.ln+.ln{border-top:1px solid var(--bd)}
+.ln{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:9px 0;white-space:pre-wrap}.ln+.ln{border-top:1px solid var(--bd)}.ln span{align-self:stretch;text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 .ln b{flex:none;min-width:84px;text-align:center;font-size:.75rem;letter-spacing:.03em;padding:3px 10px;border-radius:999px;border:1px solid var(--c);color:var(--c);background:var(--pri2);background:color-mix(in srgb,var(--c) 14%,transparent);margin-top:1px}
 .ln.r-Pendeta{--c:var(--r1)}.ln.r-Liturgos{--c:var(--r2)}.ln.r-Jemaat{--c:var(--r3)}.ln.r-Bersama{--c:var(--r4)}
 .ln.r-Bersama b{background:var(--r4);color:var(--bg);box-shadow:0 1px 3px rgba(0,0,0,.2)}.ln.r-Bersama span{font-weight:700}
@@ -34,7 +34,7 @@ input,textarea,select{width:100%;font:inherit;color:var(--tx);background:var(--b
 .line{display:grid;grid-template-columns:96px 1fr 34px;gap:6px;margin-top:6px;align-items:start}
 .add{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .bar{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--bd);display:flex;gap:8px;max-width:640px;margin:0 auto}.bar .btn{flex:1}
-.nt{width:100%;margin-top:8px;border-radius:8px;border:1px solid var(--bd);background:#fff;cursor:zoom-in;display:block}.ly{color:var(--tx);margin-top:10px}
+.nt{width:100%;margin-top:8px;border-radius:8px;border:1px solid var(--bd);background:#fff;cursor:zoom-in;display:block}.ly{color:var(--tx);margin-top:10px;text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 .thumb{position:relative;margin:6px 0}.thumb img{width:100%;max-height:160px;object-fit:contain;background:#fff;border:1px solid var(--bd);border-radius:8px;display:block}.thumb button{position:absolute;top:6px;right:6px;background:var(--card)}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.92);overflow:auto;z-index:20}.ov img{width:100%;background:#fff;display:block;margin-top:56px}.ov.z img{width:250%;max-width:none}.ov .btn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:21}
 #toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#222;color:#fff;padding:8px 14px;border-radius:20px;font-size:14px;display:none}
@@ -95,7 +95,7 @@ async function upl(file){
 }
 function pt(p,i){
   const dn=S.dn.includes(p.id);
-  let h='<div class="pt'+(dn?' done':'')+'"><div class="hd" data-a="mark" data-pid="'+p.id+'" data-n="'+(i+1)+'"><div class="n">'+(dn?'✓':i+1)+'</div><div class="ht">'+(p.type=='lagu'?'<div class="tag">Menyanyikan Lagu</div>':'')+'<div class="t">'+esc(p.type=='lagu'&&p.nomor?p.nomor+' — ':'')+esc(p.title)+'</div></div></div><div class="bd'+(p.type=='litani'?' lt':'')+'">';
+  let h='<div class="pt'+(dn?' done':'')+'"><div class="hd" data-a="mark" data-pid="'+p.id+'" data-n="'+(i+1)+'"><div class="n">'+(dn?'✓':i+1)+'</div><div class="ht">'+(p.type=='lagu'?'<div class="tag">Menyanyikan Lagu</div>':'')+'<div class="t">'+esc(p.type=='lagu'&&p.nomor?p.nomor+' — ':'')+esc(p.title)+'</div></div></div><div class="bd'+(p.type=='litani'||p.type=='lagu'?' lt':'')+'">';
   if(p.type=='desk'&&p.desc)h+='<p class="d">'+esc(p.desc)+'</p>';
   if(p.type=='lagu'){(p.imgs||[]).forEach(src=>{h+='<img class="nt" data-a="zoom" src="'+esc(src)+'" alt="Notasi lagu">'});if(p.lirik)h+='<p class="d ly">'+esc(p.lirik)+'</p>'}
   if(p.type=='litani')h+=(p.lines||[]).map(l=>'<div class="ln r-'+l.who+'"><b>'+l.who+'</b><span>'+esc(l.text)+'</span></div>').join('');
