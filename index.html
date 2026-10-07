@@ -747,7 +747,7 @@ function render(){
   
 if(S.view!='edit'){
   h+='<div class="seg"><button data-a="tab" data-v="jemaat" class="'+(S.tab=='jemaat'?'on':'')+'">Jemaat</button><button data-a="tab" data-v="admin" class="'+(S.tab=='admin'||S.tab=='lagu'?'on':'')+'">Admin</button></div>';
-  if(S.laguUn) h+='<div class="tg"><span class="badge-lagu">🎵 Mode Pilih Lagu</span><button data-a="lagulogout">Keluar Pilih Lagu</button></div>';
+  if(S.laguUn) h+='<div class="tg"><span class="badge-lagu">Pilih Lagu</span><button data-a="lagulogout">Keluar Pilih Lagu</button></div>';
   if(S.un && S.tab!='jemaat') h+='<div class="tg"><button data-a="lock">Keluar Admin</button></div>';
 }
 
