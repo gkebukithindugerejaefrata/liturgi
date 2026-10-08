@@ -1086,7 +1086,20 @@ if(S.tab=='lagu' && S.laguUn){
     h+='<div class="card"><div class="tag" style="margin-bottom:8px">Tambah point</div><div class="add"><button class="btn o" data-a="add" data-t="point">Point saja</button><button class="btn o" data-a="add" data-t="lagu">Lagu (menyanyi)</button><button class="btn o" data-a="add" data-t="litani">Litani</button><button class="btn o" data-a="add" data-t="desk">Point + Deskripsi</button></div><div class="tag" style="margin:12px 0 6px">Instruksi jemaat (tanpa nomor, rata kanan di PDF)</div><div class="add"><button class="btn o" data-a="add" data-t="cue" data-title="Jemaat berdiri">Jemaat berdiri</button><button class="btn o" data-a="add" data-t="cue" data-title="Jemaat duduk">Jemaat duduk</button><button class="btn o" data-a="add" data-t="cue" data-title="Ungkup mendeng">Ungkup mendeng</button><button class="btn o" data-a="add" data-t="cue" data-title="Ungkup mondok haluli">Ungkup mondok haluli</button><button class="btn o" data-a="add" data-t="cue" data-title="Ungkup mindri">Ungkup mindri</button><button class="btn o" data-a="add" data-t="cue" data-title="Ungkup maharung">Ungkup maharung</button><button class="btn o" data-a="add" data-t="cue" data-title="">Teks bebas</button></div></div>';
     h+='<div class="bar"><button class="btn o" data-a="cancel">Batal</button><button class="btn" data-a="save">Simpan</button></div>';
   }
-  if(S.view=='detail')setTimeout(upProg,0);
+  if(S.view=='detail'){
+    setTimeout(upProg,0);
+    // Jika ada target scroll dari edit lagu, scroll ke sana
+    if(S._scrollToPid){
+      const pid=S._scrollToPid;
+      const idx=S._scrollToIdx;
+      setTimeout(()=>{
+        const el=document.querySelector('[data-pid="'+pid+'"]') || (typeof idx==='number' ? document.querySelectorAll('.pt')[idx] : null);
+        if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+      },100);
+      // hapus setelah dipakai biar tidak scroll terus
+      setTimeout(()=>{ S._scrollToPid=null; S._scrollToIdx=null; },1000);
+    }
+  }
   $('app').innerHTML=h+'</main>'+(S.zoom?'<div class="ov"><button class="btn sm" data-a="closeov">Tutup ✕</button><img data-a="zoomtog" src="'+esc(S.zoom)+'" alt=""></div>':'');
 }
 document.addEventListener('input',e=>{
@@ -1211,13 +1224,27 @@ document.addEventListener('click',async e=>{
     if(!editedPoint || editedPoint.type!='lagu'){ toast('Bukan lagu'); return; }
     const orig = D.liturgies.find(y=>y.id==S.edit.id);
     if(!orig){ toast('Liturgi tidak ditemukan'); return; }
-    orig.points[origIdx]=editedPoint;
-    // Simpan state untuk rollback jika gagal
+    // Simpan backup SEBELUM overwrite
     const _backupPoint = JSON.parse(JSON.stringify(orig.points[origIdx]));
+    const _targetPid = editedPoint.id;
+    const _targetIdx = origIdx;
     // Update local dulu untuk UI responsif
     orig.points[origIdx]=editedPoint;
     S.edit=null; S.laguEditIdx=null; S.view='detail';
-    if(S.un){ persist(orig); toast('Lagu disimpan - '+ (editedPoint.title||'tanpa judul')); render(); return }
+    // Simpan posisi scroll target untuk setelah render
+    S._scrollToPid = _targetPid;
+    S._scrollToIdx = _targetIdx;
+    if(S.un){ 
+      persist(orig); 
+      toast('Lagu disimpan - '+ (editedPoint.title||'tanpa judul')); 
+      render(); 
+      // Scroll ke bagian yang baru disimpan
+      setTimeout(()=>{
+        const el=document.querySelector('[data-pid="'+_targetPid+'"]');
+        if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+      },150);
+      return 
+    }
     // Pilih Lagu: simpan ke server via RPC - HARUS termasuk nomor, label, judul, gambar, lirik
     (async()=>{
       if(!sb){ toast('Supabase belum dikonfigurasi'); render(); return }
@@ -1251,6 +1278,11 @@ document.addEventListener('click',async e=>{
         // Refresh dari server untuk memastikan tersimpan
         await loadAll();
         render();
+        // Tetap di posisi bagian yang diedit
+        setTimeout(()=>{
+          const el=document.querySelector('[data-pid="'+_targetPid+'"]') || document.querySelectorAll('.pt')[_targetIdx];
+          if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+        },200);
       }catch(e){
         const o = D.liturgies.find(y=>y.id==orig.id);
         if(o) o.points[origIdx]=_backupPoint;
@@ -1268,10 +1300,10 @@ document.addEventListener('click',async e=>{
     S.edit=null;S.view='list';return persist(E);
   }
   else if(a=='add'){const t=b.dataset.t,p={id:uid(),type:t,title:b.dataset.title||''};if(t=='litani')p.lines=[{who:'Pendeta',text:''}];E.points.push(p)}
-  else if(a=='up'&&i>0){[E.points[i-1],E.points[i]]=[E.points[i],E.points[i-1]]}
-  else if(a=='dn'&&i<E.points.length-1){[E.points[i+1],E.points[i]]=[E.points[i],E.points[i+1]]}
-  else if(a=='rm'){E.points.splice(i,1)}
-  else if(a=='addl'){const ls=E.points[i].lines;const last=ls[ls.length-1];ls.push({who:last&&last.who=='Pendeta'?'Jemaat':'Pendeta',text:''})}
+  else if(a=='up'&&i>0){const _sy=window.scrollY; [E.points[i-1],E.points[i]]=[E.points[i],E.points[i-1]]; setTimeout(()=>window.scrollTo(0,_sy),0)}
+  else if(a=='dn'&&i<E.points.length-1){const _sy=window.scrollY; [E.points[i+1],E.points[i]]=[E.points[i],E.points[i+1]]; setTimeout(()=>window.scrollTo(0,_sy),0)}
+  else if(a=='rm'){const _sy=window.scrollY; E.points.splice(i,1); setTimeout(()=>window.scrollTo(0,_sy),0)}
+  else if(a=='addl'){const _sy=window.scrollY; const ls=E.points[i].lines;const last=ls[ls.length-1];ls.push({who:last&&last.who=='Pendeta'?'Jemaat':'Pendeta',text:''}); setTimeout(()=>window.scrollTo(0,_sy),0)}
   else if(a=='rml'){E.points[i].lines.splice(+b.dataset.l,1)}
   else if(a=='upheader'){
     const f=document.createElement('input'); f.type='file'; f.accept='image/*';
