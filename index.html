@@ -195,6 +195,7 @@ const CUE_EXACT=/^\s*(jemaat\s+(berdiri|duduk)|ungkup\s+(mendeng|mondok\s+haluli
 const LAGU_LABELS=['JEMAAT MENYANYI','UNGKUP MANYANYI'];
 const laguLabel=p=>p.label==null?LAGU_LABELS[0]:String(p.label);
 let NOTASI='bawah'; // FIX: hanya memanjang ke bawah, pilihan otomatis dihapus
+// Mode per-lagu: pdfMode per point (half/full), bukan global
 const TN={point:'Point',lagu:'Lagu',litani:'Litani',desk:'Point + Deskripsi',cue:'Instruksi Jemaat'};
 const S={dn:[],tab:'jemaat',view:'list',id:null,edit:null,cf:null,admin:false,owner:false,chg:false,fails:0,until:0,un:false,laguUn:false,laguEditIdx:null}; window._showArchived=true; window._showArchived=true;
 const ss=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
@@ -295,15 +296,16 @@ function buildF4Html(x){
       inner+='<div class="mini-body">'+(im?'<div class="nt-col">'+im+'</div>':'')+(p.lirik?'<div class="d-mini">'+lirikStanzas(p.lirik)+'</div>':'')+'</div>';
       const _lyRaw=String(p.lirik||'').replace(/\[\/?[biu]\]/g,'');
       const _ly=_lyRaw.trim();
-      const side=NOTASI!='bawah'&&(p.imgs||[]).length>0&&_ly!=='';
+      const isFullCard = p.pdfMode==='full' || p.pdfFull===true || p.full===true;
+      const side= (NOTASI!='bawah'&&(p.imgs||[]).length>0&&_ly!=='') || isFullCard;
       // Hitung jumlah bait (stanza) = pisah baris kosong, sama seperti lirikStanzas()
       const _stanzaArr=_lyRaw.split(/\n[ \t]*(?:\n[ \t]*)+/).map(t=>t.trim()).filter(Boolean);
       const _stanzaCount=_stanzaArr.length;
       const _est=_ly.split('\n').reduce((n,l)=>n+Math.max(1,Math.ceil(l.trim().length/40)),0);
-      // FIX: hanya lebih dari 2 bait baru jadi 2 kolom, bukan selalu
-      const shouldTwoCols = _stanzaCount > 2;
+      // FIX: hanya lebih dari 2 bait baru jadi 2 kolom, bukan selalu - kecuali mode penuh
+      const shouldTwoCols = !isFullCard && _stanzaCount > 2;
       const dual=shouldTwoCols && side && _est>=4; // gambar di atas, lirik 2 kolom di bawah
-      const narrowClass = shouldTwoCols ? ' narrow-lyrics' : '';
+      const narrowClass = (shouldTwoCols ? ' narrow-lyrics' : '') + (isFullCard ? ' full-card' : '');
       return '<div class="lagu-mini-card'+(side?' side':'')+(dual?' dual':'')+narrowClass+'">'+inner+'</div>';
     }).join('');
     lampiranHtml+='</div></div>';
@@ -355,7 +357,7 @@ function buildF4Html(x){
 .lagu-pg-col{display:flex;flex-direction:column;gap:10pt}
 .lagu-pg .lagu-mini-card{width:100%}
 .lagu-cols{display:flex;gap:10pt;align-items:flex-start;margin-bottom:10pt} .lagu-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:10pt}
-.lagu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10pt} .lagu-mini-card{break-inside:avoid;border:0.5pt solid #bbb;border-radius:3pt;padding:6pt}
+.lagu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10pt} .lagu-mini-card{break-inside:avoid;border:0.5pt solid #bbb;border-radius:3pt;padding:6pt} .lagu-mini-card.full-card{grid-column:1/-1} .lagu-mini-card.side{grid-column:1/-1} .lagu-mini-card.full-card .nt-mini{max-height:45vh !important}
 .lagu-mini-title{font-weight:700;font-size:11pt;margin-bottom:3pt} .nt-mini{width:100%;max-width:100%;height:auto;max-height:26vh;object-fit:contain;margin:3pt 0;display:block} .d-mini{white-space:pre-wrap;font-size:12pt;text-align:justify;line-height:1.2;overflow-wrap:anywhere;word-break:break-word}
  /* === FIX TEPI KANAN KEPOTONG - MARGIN TETAP 10mm === */
  html,body{max-width:100%;overflow-x:hidden}
@@ -520,10 +522,11 @@ function packLampiran(ifr,doc,g,used){
       cur={cols:[[],[]], heights:[0,0], cap:ph, isFirst:false};
     }
 
+    const isFullMode = false; // per-lagu saja, bukan global
     for(let i=0;i<cards.length;i++){
       const c=cards[i];
       const h=hs[i];
-      const isSide=c.classList.contains('side');
+      const isSide=c.classList.contains('side') || isFullMode; // di mode penuh, semua dianggap full width
 
       if(isSide){
         if(cur.cols[0].length||cur.cols[1].length) pushCur();
@@ -532,13 +535,11 @@ function packLampiran(ifr,doc,g,used){
         continue;
       }
 
-      // Pilih kolom terpendek (masonry)
-      let colIdx = cur.heights[0]<=cur.heights[1] ? 0 : 1;
+      // Pilih kolom terpendek (masonry) - kalau full mode, selalu kolom 0
+      let colIdx = isFullMode ? 0 : (cur.heights[0]<=cur.heights[1] ? 0 : 1);
       let newHeight = cur.heights[colIdx] + (cur.cols[colIdx].length?gap:0) + h;
-      let maxHeight = Math.max(newHeight, cur.heights[1-colIdx]);
+      let maxHeight = isFullMode ? newHeight : Math.max(newHeight, cur.heights[1-colIdx]);
 
-      // Jika tidak muat di halaman ini, buat halaman baru
-      // Kecuali ini card pertama di halaman
       if(cur.cols[0].length+cur.cols[1].length>0 && maxHeight > cur.cap*0.985){
         pushCur();
         colIdx=0;
@@ -697,7 +698,10 @@ function edPt(p,i){
   if(p.type=='lagu'){
     h+=inp('Nomor / buku (opsional)','nomor',p.nomor,i)+'<div class="acts"><div class="mut">Gambar notasi (opsional, bisa lebih dari satu)</div>';
     (p.imgs||[]).forEach((src,k)=>{h+='<div class="thumb"><img src="'+esc(src)+'" alt=""><button class="ic dng" data-a="rmimg" data-i="'+i+'" data-l="'+k+'">✕</button></div>'});
-    h+='<button class="btn o sm" data-a="upimg" data-i="'+i+'">+ Unggah gambar</button></div>'+rte('Teks / lirik lagu (tampil di bawah gambar, opsional)','lirik',p.lirik,i);
+    h+='<button class="btn o sm" data-a="upimg" data-i="'+i+'">+ Unggah gambar</button></div>';
+    const curMode = p.pdfMode|| (p.pdfFull?'full':'half');
+    h+='<div style="margin:8px 0;padding:8px;background:var(--bg);border:1px dashed var(--bd);border-radius:8px"><label style="font-size:13px">Tampilan di PDF<select data-f="pdfMode" data-i="'+i+'" style="margin-left:6px"><option value="half"'+(curMode==='half'?' selected':'')+'>Setengah kolom (2 per baris, hemat kertas)</option><option value="full"'+(curMode==='full'?' selected':'')+'>Penuh (1 per baris, gambar besar)</option></select></label><div class="mut" style="font-size:11px;margin-top:4px">Jika gambar terlihat kecil di PDF, pilih Penuh. Hanya pengaruhi PDF, tidak pengaruhi tampilan HTML.</div></div>';
+    h+=rte('Teks / lirik lagu (tampil di bawah gambar, opsional)','lirik',p.lirik,i);
   }
   if(p.type=='desk')h+=rte('Deskripsi','desc',p.desc,i);
   if(p.type=='litani'){
@@ -1061,7 +1065,10 @@ if(S.tab=='lagu' && S.laguUn){
       eh+='<div class="rtl">Sebutan sebelum judul lagu</div><select data-f="label" data-i="'+idx+'">'+LAGU_LABELS.map(r=>'<option'+(r==lb?' selected':'')+'>'+r+'</option>').join('')+'<option value="__custom"'+(cu?' selected':'')+'>Custom…</option></select>'+(cu?'<input data-f="label" data-i="'+idx+'" value="'+esc(lb)+'" placeholder="Tulis sebutan" style="margin-top:4px">':'');
       eh+=inp('Nomor / buku (opsional)','nomor',p.nomor,idx)+'<div class="acts"><div class="mut">Gambar notasi (opsional)</div>';
       (p.imgs||[]).forEach((src,k)=>{eh+='<div class="thumb"><img src="'+esc(src)+'" alt=""><button class="ic dng" data-a="rmimg" data-i="'+idx+'" data-l="'+k+'">✕</button></div>'});
-      eh+='<button class="btn o sm" data-a="upimg" data-i="'+idx+'">+ Unggah gambar notasi</button></div>'+rte('Teks / lirik lagu','lirik',p.lirik,idx);
+      eh+='<button class="btn o sm" data-a="upimg" data-i="'+idx+'">+ Unggah gambar notasi</button></div>';
+      const curModeLagu = p.pdfMode|| (p.pdfFull?'full':'half');
+      eh+='<div style="margin:8px 0;padding:8px;background:var(--bg);border:1px dashed var(--bd);border-radius:8px"><label style="font-size:13px">Tampilan di PDF<select data-f="pdfMode" data-i="'+idx+'" style="margin-left:6px"><option value="half"'+(curModeLagu==='half'?' selected':'')+'>Setengah kolom (2 per baris)</option><option value="full"'+(curModeLagu==='full'?' selected':'')+'>Penuh (1 per baris, gambar besar)</option></select></label><div class="mut" style="font-size:11px;margin-top:4px">Jika gambar terlihat kecil di PDF, pilih Penuh. Hanya pengaruhi PDF.</div></div>';
+      eh+=rte('Teks / lirik lagu','lirik',p.lirik,idx);
       eh+='</div>';
       h+=eh;
       h+='<div class="bar"><button class="btn o" data-a="cancellagu">Batal</button><button class="btn" data-a="savelagu">💾 Simpan Lagu</button></div>';
@@ -1215,7 +1222,7 @@ document.addEventListener('click',async e=>{
     (async()=>{
       if(!sb){ toast('Supabase belum dikonfigurasi'); render(); return }
       try{
-        // Coba RPC baru dengan nomor dan label (fix bug 1)
+        // Coba RPC baru dengan nomor, label, pdfMode (fix per-point full/half)
         let {error}=await sb.rpc('update_lagu_point',{
           p_liturgy_id:String(orig.id),
           p_point_id:String(editedPoint.id),
@@ -1223,7 +1230,8 @@ document.addEventListener('click',async e=>{
           p_nomor:editedPoint.nomor||'',
           p_label:editedPoint.label||'',
           p_imgs:editedPoint.imgs||[],
-          p_lirik:editedPoint.lirik||''
+          p_lirik:editedPoint.lirik||'',
+          p_pdf_mode:editedPoint.pdfMode||'half'
         });
         // Fallback ke RPC lama jika server belum update (hanya title, imgs, lirik)
         if(error && error.message && error.message.toLowerCase().includes('p_nomor')){
