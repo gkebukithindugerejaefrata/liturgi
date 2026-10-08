@@ -296,15 +296,19 @@ function buildF4Html(x){
       inner+='<div class="mini-body">'+(im?'<div class="nt-col">'+im+'</div>':'')+(p.lirik?'<div class="d-mini">'+lirikStanzas(p.lirik)+'</div>':'')+'</div>';
       const _lyRaw=String(p.lirik||'').replace(/\[\/?[biu]\]/g,'');
       const _ly=_lyRaw.trim();
+      const hasImg = (p.imgs||[]).length>0;
       const isFullCard = p.pdfMode==='full' || p.pdfFull===true || p.full===true;
-      const side= (NOTASI!='bawah'&&(p.imgs||[]).length>0&&_ly!=='') || isFullCard;
-      // Hitung jumlah bait (stanza) = pisah baris kosong, sama seperti lirikStanzas()
+      // Card penuh jika di-set full, atau (lama) NOTASI side
+      const side = isFullCard || (NOTASI!='bawah'&&hasImg&&_ly!=='');
+      // Hitung jumlah bait
       const _stanzaArr=_lyRaw.split(/\n[ \t]*(?:\n[ \t]*)+/).map(t=>t.trim()).filter(Boolean);
       const _stanzaCount=_stanzaArr.length;
       const _est=_ly.split('\n').reduce((n,l)=>n+Math.max(1,Math.ceil(l.trim().length/40)),0);
-      // FIX: hanya lebih dari 2 bait baru jadi 2 kolom, bukan selalu - kecuali mode penuh
-      const shouldTwoCols = !isFullCard && _stanzaCount > 2;
-      const dual=shouldTwoCols && side && _est>=4; // gambar di atas, lirik 2 kolom di bawah
+      // LOGIC BARU sesuai request:
+      // - Jika ada gambar: >2 bait => lirik jadi 2 kolom di bawah gambar (hemat kertas, mantap seperti sebelumnya)
+      // - Jika text saja: SELALU lurus kebawah (1 kolom di dalam card), tapi card luar tetap 2 per baris
+      const shouldTwoCols = !isFullCard && hasImg && _stanzaCount > 2;
+      const dual = shouldTwoCols && hasImg && _est>=4;
       const narrowClass = (shouldTwoCols ? ' narrow-lyrics' : '') + (isFullCard ? ' full-card' : '');
       return '<div class="lagu-mini-card'+(side?' side':'')+(dual?' dual':'')+narrowClass+'">'+inner+'</div>';
     }).join('');
