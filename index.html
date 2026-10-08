@@ -149,6 +149,19 @@ function rtxt(v){v=String(v==null?'':v);let out='',st=[];
   while(st.length){out+='</'+{b:'strong',i:'em',u:'u'}[st.pop()]+'>'}
   return out}
 function rtHtml(v){return rtxt(v).replace(/\n/g,'<br>')}
+// Pecah lirik per bait (dibatasi baris kosong). Tiap bait dibungkus .stz supaya tidak terpotong antar kolom/halaman.
+function lirikStanzas(v){
+  v=String(v==null?'':v).replace(/\r\n?/g,'\n');
+  const parts=v.split(/\n[ \t]*(?:\n[ \t]*)+/).map(t=>t.replace(/^\n+|\n+$/g,'')).filter(t=>t.trim()!=='');
+  const open=[];
+  return parts.map(t=>{
+    const pre=open.map(k=>'['+k+']').join('');
+    t.split(/(\[\/?[biu]\])/).forEach(tok=>{const m=/^\[(\/?)([biu])\]$/.exec(tok);if(!m)return;
+      if(!m[1])open.push(m[2]);else{const k=open.lastIndexOf(m[2]);if(k>=0)open.splice(k,1)}});
+    const post=open.slice().reverse().map(k=>'[/'+k+']').join('');
+    return '<div class="stz">'+rtxt(pre+t+post)+'</div>';
+  }).join('');
+}
 const RT_SKIP=new Set(['STYLE','SCRIPT','META','LINK','TITLE','HEAD','XML','NOSCRIPT','TEMPLATE']);
 const RT_BLK=new Set(['DIV','P','LI','UL','OL','H1','H2','H3','H4','H5','H6','BLOCKQUOTE','TR','TABLE','PRE','SECTION','ARTICLE']);
 function rtTok(root){
@@ -181,9 +194,9 @@ const rte=(lb,f,v,i)=>'<div class="rtl">'+lb+'</div>'+rteBox(f,v,i,null);
 const CUE_EXACT=/^\s*(jemaat\s+(berdiri|duduk)|ungkup\s+(mendeng|mondok\s+haluli|mindri|maharung))\s*$/i;
 const LAGU_LABELS=['JEMAAT MENYANYI','UNGKUP MANYANYI'];
 const laguLabel=p=>p.label==null?LAGU_LABELS[0]:String(p.label);
-let NOTASI='auto';try{NOTASI=localStorage.getItem('notasiMode')=='bawah'?'bawah':'auto'}catch(e){}
+let NOTASI='bawah'; // FIX: hanya memanjang ke bawah, pilihan otomatis dihapus
 const TN={point:'Point',lagu:'Lagu',litani:'Litani',desk:'Point + Deskripsi',cue:'Instruksi Jemaat'};
-const S={dn:[],tab:'jemaat',view:'list',id:null,edit:null,cf:null,admin:true,owner:false,chg:false,fails:0,until:0,un:false,laguUn:false,laguEditIdx:null}; window._showArchived=true; window._showArchived=true;
+const S={dn:[],tab:'jemaat',view:'list',id:null,edit:null,cf:null,admin:false,owner:false,chg:false,fails:0,until:0,un:false,laguUn:false,laguEditIdx:null}; window._showArchived=true; window._showArchived=true;
 const ss=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
 const sg=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 
@@ -279,9 +292,19 @@ function buildF4Html(x){
       const t=(p.nomor? pdfEsc(p.nomor+' — '):'')+pdfEsc(p.title);
       let inner='<div class="lagu-mini-title">'+nums[idx]+t+'</div>';
       const im=(p.imgs||[]).map(src=>'<img class="nt-mini" src="'+pdfEsc(src)+'" alt="Notasi">').join('');
-      inner+='<div class="mini-body">'+(im?'<div class="nt-col">'+im+'</div>':'')+(p.lirik?'<div class="d-mini">'+rtxt(p.lirik)+'</div>':'')+'</div>';
-      const side=NOTASI!='bawah'&&(p.imgs||[]).length>0&&String(p.lirik||'').trim()!=='';
-      return '<div class="lagu-mini-card'+(side?' side':'')+'">'+inner+'</div>';
+      inner+='<div class="mini-body">'+(im?'<div class="nt-col">'+im+'</div>':'')+(p.lirik?'<div class="d-mini">'+lirikStanzas(p.lirik)+'</div>':'')+'</div>';
+      const _lyRaw=String(p.lirik||'').replace(/\[\/?[biu]\]/g,'');
+      const _ly=_lyRaw.trim();
+      const side=NOTASI!='bawah'&&(p.imgs||[]).length>0&&_ly!=='';
+      // Hitung jumlah bait (stanza) = pisah baris kosong, sama seperti lirikStanzas()
+      const _stanzaArr=_lyRaw.split(/\n[ \t]*(?:\n[ \t]*)+/).map(t=>t.trim()).filter(Boolean);
+      const _stanzaCount=_stanzaArr.length;
+      const _est=_ly.split('\n').reduce((n,l)=>n+Math.max(1,Math.ceil(l.trim().length/40)),0);
+      // FIX: hanya lebih dari 2 bait baru jadi 2 kolom, bukan selalu
+      const shouldTwoCols = _stanzaCount > 2;
+      const dual=shouldTwoCols && side && _est>=4; // gambar di atas, lirik 2 kolom di bawah
+      const narrowClass = shouldTwoCols ? ' narrow-lyrics' : '';
+      return '<div class="lagu-mini-card'+(side?' side':'')+(dual?' dual':'')+narrowClass+'">'+inner+'</div>';
     }).join('');
     lampiranHtml+='</div></div>';
   }
@@ -308,7 +331,7 @@ function buildF4Html(x){
   font-display: swap;
 }
 
-@page{size:215mm 330mm;margin:10mm 10mm 10mm 10mm;@bottom-right{content:"Hal. " counter(page);font-size:8pt;font-family:"Myriad Pro",sans-serif;}}
+@page{size:215mm 330mm;margin:10mm 10mm 15mm 10mm;@bottom-right{content:"Hal. " counter(page);font-size:8pt;font-family:"Myriad Pro",sans-serif;border-top:0.5pt solid #000;padding-top:4pt;margin-top:6pt;}}
 *{box-sizing:border-box}body{margin:0;padding:0;background:#fff;color:#000;font:11pt/1.2 "Myriad Pro",Myriad,sans-serif}
 .header-f4{border-bottom:1.5pt solid #000;padding-bottom:10pt;margin-bottom:14pt;display:flex;gap:12pt;align-items:flex-start;}
 .logo-gke{width:72pt;height:72pt;object-fit:contain;flex:none;}
@@ -321,10 +344,19 @@ function buildF4Html(x){
 .ref-lampiran{font-size:11pt;font-style:italic;color:#555} .d{white-space:pre-wrap;margin-top:3pt;font-size:12pt;text-align:justify;line-height:1.2}
 .ln{display:grid;grid-template-columns:62pt 8pt minmax(0,1fr);gap:3pt;margin:3pt 0;font-size:12pt;line-height:1.2} .ln .who{white-space:normal;overflow-wrap:anywhere} .ln .colon{text-align:center} .ln .txt{text-align:justify;white-space:pre-wrap;}
 .lagu-appendix{margin-top:16pt;border-top:1pt solid #000;padding-top:10pt} .appendix-title{font-weight:700;font-size:11pt;text-align:center;margin-bottom:8pt}
-.lagu-mini-card.side{grid-column:1/-1} .lagu-mini-card.side .mini-body{display:flex;gap:8pt;align-items:flex-start} .lagu-mini-card.side .nt-col{flex:3 1 0;min-width:0} .lagu-mini-card.side .d-mini{flex:2 1 0;min-width:0;margin-top:3pt} .lagu-mini-card.side .nt-mini{max-height:60vh}
+.lagu-mini-card.side{grid-column:1/-1} .d-mini .stz{break-inside:avoid;page-break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:1.2em} .d-mini .stz:last-child{margin-bottom:0} .lagu-mini-card.side.dual .mini-body{display:block} .lagu-mini-card.side.dual .nt-col{width:100%;flex:none} .lagu-mini-card.side.dual .nt-mini{max-width:100%} .lagu-mini-card.side.dual .d-mini{column-count:2;column-gap:14pt;column-fill:balance;margin-top:5pt} .lagu-mini-card.side .mini-body{display:flex;gap:8pt;align-items:flex-start} .lagu-mini-card.side .nt-col{flex:3 1 0;min-width:0} .lagu-mini-card.side .d-mini{flex:2 1 0;min-width:0;margin-top:3pt} .lagu-mini-card.side .nt-mini{max-height:60vh}
+.lagu-mini-card.narrow-lyrics .d-mini{column-count:2;column-gap:12pt;column-fill:balance}
+.lagu-mini-card.side.narrow-lyrics .mini-body{display:block}
+.lagu-mini-card.side.narrow-lyrics .nt-col{width:100%;flex:none}
+.lagu-mini-card.side.narrow-lyrics .nt-mini{max-width:100%}
+.lagu-mini-card.side.narrow-lyrics .d-mini{column-count:2;column-gap:14pt;margin-top:6pt}
+.lagu-pg{display:block}
+.lagu-pg-cols{display:grid;grid-template-columns:1fr 1fr;gap:10pt;align-items:start}
+.lagu-pg-col{display:flex;flex-direction:column;gap:10pt}
+.lagu-pg .lagu-mini-card{width:100%}
 .lagu-cols{display:flex;gap:10pt;align-items:flex-start;margin-bottom:10pt} .lagu-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:10pt}
 .lagu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10pt} .lagu-mini-card{break-inside:avoid;border:0.5pt solid #bbb;border-radius:3pt;padding:6pt}
-.lagu-mini-title{font-weight:700;font-size:11pt;margin-bottom:3pt} .nt-mini{width:100%;max-width:100%;height:auto;max-height:26vh;object-fit:contain;margin:3pt 0;display:block} .d-mini{white-space:pre-wrap;font-size:11pt;text-align:justify;line-height:1.2;overflow-wrap:anywhere;word-break:break-word}
+.lagu-mini-title{font-weight:700;font-size:11pt;margin-bottom:3pt} .nt-mini{width:100%;max-width:100%;height:auto;max-height:26vh;object-fit:contain;margin:3pt 0;display:block} .d-mini{white-space:pre-wrap;font-size:12pt;text-align:justify;line-height:1.2;overflow-wrap:anywhere;word-break:break-word}
  /* === FIX TEPI KANAN KEPOTONG - MARGIN TETAP 10mm === */
  html,body{max-width:100%;overflow-x:hidden}
  .header-f4{width:100%;max-width:100%;box-sizing:border-box}
@@ -373,14 +405,14 @@ function buildF4HalfSuperMepetHtml(x){
   let html = buildF4Html(x);
   html = html.replace('size:215mm 330mm;', 'size:165mm 215mm;');
   // FIX: Sertakan keterangan halaman pojok kanan bawah + margin bawah lebih besar untuk space nomor
-  html = html.replace(/@page\s*\{[^}]*\}/, '@page{ size:165mm 215mm; margin-top:4mm; margin-bottom:10mm; margin-left:6mm; margin-right:10mm; @bottom-right{content:"Hal. " counter(page);font-size:8pt;font-family:"Myriad Pro",sans-serif;} }');
+  html = html.replace(/@page\s*\{[^}]*\}/, '@page{ size:165mm 215mm; margin-top:4mm; margin-bottom:15mm; margin-left:6mm; margin-right:10mm; @bottom-right{content:"Hal. " counter(page);font-size:8pt;font-family:"Myriad Pro",sans-serif;border-top:0.5pt solid #000;padding-top:3pt;margin-top:5pt;} }');
   // FONT 11PT UNTUK BOOKFOLD F4 - SESUAI REQUEST
   html = html.replace('</style>', `
     body{ font:10pt/1.2 "Myriad Pro",Myriad,sans-serif !important; }
     .point-item{margin-bottom:3pt} 
     .point-title{font-size:10pt !important; line-height:1.2} 
-    .d{font-size:10pt !important; line-height:1.2} 
-    .ln{font-size:10pt !important; margin:1.5pt 0; gap:2pt; line-height:1.2} 
+    .d{font-size:12pt !important; line-height:1.2} 
+    .ln{font-size:12pt !important; margin:1.5pt 0; gap:2pt; line-height:1.2} 
     .ln b{font-size:0.75rem; padding:3px 8px} 
     .header-f4{margin-bottom:5pt; padding-bottom:4pt} 
     .info-left .judul-ibadah{font-size:10pt !important;white-space:pre-wrap !important;word-break:break-word !important}
@@ -388,7 +420,7 @@ function buildF4HalfSuperMepetHtml(x){
     .ref-lampiran{font-size:10pt !important}
     .jam-pill{font-size:10pt !important}
     .lagu-mini-title{font-size:10pt !important}
-         .d-mini{font-size:10pt !important; overflow-wrap:anywhere; word-break:break-word}
+         .d-mini{font-size:12pt !important; overflow-wrap:anywhere; word-break:break-word}
      /* FIX TEPI KANAN BOOKFOLD - margin tetap 10mm */
      .point-title.rt{padding-right:6pt !important; margin-right:1mm}
      .lagu-grid{gap:6pt !important}
@@ -401,34 +433,145 @@ function buildF4HalfSuperMepetHtml(x){
 
      /* Pastikan footer halaman terlihat */ /* Pastikan footer halaman terlihat */
     @media print {
-      @page { @bottom-right{content:"Hal. " counter(page); font-size:8pt;} }
+      @page { @bottom-right{content:"Hal. " counter(page); font-size:8pt; border-top:0.5pt solid #000; padding-top:3pt; margin-top:5pt;} }
     }
   </style>`);
-  html = html.replace(/<title>.*?<\/title>/i, '<title>'+ (x.judul||'Liturgi') +' - Bookfold F4 10pt</title>');
+  const _tglHalf = x.tanggal ? pdfFmtDate(x.tanggal) : '';
+  const _jamHalf = jamList(x).join(', ');
+  let _titleHalf = (x.judul||'Liturgi').trim();
+  if(_tglHalf) _titleHalf += ' - ' + _tglHalf;
+  if(_jamHalf) _titleHalf += ' - ' + _jamHalf;
+  html = html.replace(/<title>.*?<\/title>/i, '<title>'+ pdfEsc(_titleHalf).replace(/"/g,'') +'</title>');
   return html;
 }
 
-function packLampiran(ifr,doc,g){
+async function ensureLaguImgMin(ifr,doc,g){
+  // Format dua kolom TETAP dipertahankan (hemat kertas). Gambar notasi diperbesar sebesar mungkin di dalam
+  // kolomnya (lebar penuh kolom, tinggi hingga 50% halaman) supaya mendekati/melebihi 1/4 area halaman.
   try{
-    const grid=doc.querySelector('.lagu-grid');if(!grid)return;
-    const cards=[...grid.children].filter(e=>e.classList.contains('lagu-mini-card'));
-    if(cards.length<3)return;
+    const cards=[...doc.querySelectorAll('.lagu-mini-card')].filter(c=>c.querySelector('.nt-mini'));
+    if(!cards.length)return;
+    const imgs=[...doc.querySelectorAll('.nt-mini')];
+    await Promise.all(imgs.map(im=>(im.complete&&im.naturalWidth)?0:new Promise(r=>{im.onload=im.onerror=r;setTimeout(r,4000)})));
     const mm=96/25.4,pw=(g.w-g.ml-g.mr)*mm,ph=(g.h-g.mt-g.mb)*mm;
+    const ow=ifr.style.width,oh=ifr.style.height;
+    ifr.style.width=pw+'px';ifr.style.height=Math.ceil(ph)+'px';
+    const need=0.25*pw*ph;
+    const vis=c=>[...c.querySelectorAll('.nt-mini')].reduce((sum,im)=>{
+      const r=im.getBoundingClientRect(),nw=im.naturalWidth||0,nh=im.naturalHeight||0;
+      if(!nw||!nh||!r.width||!r.height)return sum;
+      const sc=Math.min(r.width/nw,r.height/nh);return sum+(nw*sc)*(nh*sc)},0);
+    cards.forEach(c=>{
+      // longgarkan batas tinggi bawaan (26vh) agar gambar mengisi lebar kolom
+      c.querySelectorAll('.nt-mini').forEach(im=>{im.style.maxHeight=Math.round(ph*(c.classList.contains('dual')?0.45:0.5))+'px'});
+      if(c.classList.contains('dual'))return;
+      // kartu berdampingan (gambar + lirik): beri porsi lebih besar untuk gambar bila masih kecil
+      if(c.classList.contains('side')&&vis(c)<need){
+        const nc=c.querySelector('.nt-col'),dm=c.querySelector('.d-mini');
+        if(nc)nc.style.flex='2 1 0';if(dm)dm.style.flex='1 1 0';
+      }
+    });
+    // Jaga agar satu baris kartu tidak lebih tinggi dari setengah halaman -> muat 2 baris x 2 kolom = 4 kartu per kertas
+    const grid=doc.querySelector('.lagu-grid');
+    if(grid){
+      const oa=grid.style.alignItems;grid.style.alignItems='start';
+      const target=(ph-10*96/72)/2*0.98;
+      cards.forEach(c=>{
+        const ims=[...c.querySelectorAll('.nt-mini')];
+        for(let k=0;k<3;k++){
+          const h=c.getBoundingClientRect().height;if(h<=target)break;
+          const ex=h-target;
+          ims.forEach(im=>{const cur=im.getBoundingClientRect().height;im.style.maxHeight=Math.max(ph*0.12,cur-ex/ims.length)+'px'});
+        }
+      });
+      grid.style.alignItems=oa;
+    }
+    ifr.style.width=ow;ifr.style.height=oh;
+  }catch(e){console.error(e)}
+}
+function packLampiran(ifr,doc,g,used){
+  // UPDATE FINAL: Bisa lebih dari 4 card per halaman jika lagu sangat pendek
+  // Masonry 2 kolom dinamis - tidak ada batas 4, selama muat di tinggi halaman
+  try{
+    const ap=doc.querySelector('.lagu-appendix'),grid=doc.querySelector('.lagu-grid');
+    if(!ap||!grid)return;
+    const cards=[...grid.children].filter(e=>e.classList.contains('lagu-mini-card'));
+    if(!cards.length)return;
+    const mm=96/25.4,pw=(g.w-g.ml-g.mr)*mm,ph=(g.h-g.mt-g.mb)*mm,H=g.h*mm,gap=10*96/72;
     const ow=ifr.style.width,oh=ifr.style.height,oa=grid.style.alignItems;
     ifr.style.width=pw+'px';ifr.style.height=Math.ceil(ph)+'px';grid.style.alignItems='start';
     const hs=cards.map(c=>c.getBoundingClientRect().height);
+    const tEl=ap.querySelector('.appendix-title');
+    const th=(tEl?tEl.getBoundingClientRect().height:14)+8*96/72;
     grid.style.alignItems=oa;ifr.style.width=ow;ifr.style.height=oh;
-    const gap=10*96/72,frag=doc.createDocumentFragment();
-    let run=[];
-    const flush=()=>{if(!run.length)return;
-      const wrap=doc.createElement('div');wrap.className='lagu-cols';
-      const cols=[0,1].map(()=>{const c=doc.createElement('div');c.className='lagu-col';wrap.appendChild(c);return c});
-      const hh=[0,0];
-      run.forEach(o=>{const k=hh[0]<=hh[1]?0:1;cols[k].appendChild(o.c);hh[k]+=o.h+gap});
-      frag.appendChild(wrap);run=[]};
-    cards.forEach((c,i)=>{if(c.classList.contains('side')){flush();c.style.marginBottom='10pt';frag.appendChild(c)}else run.push({c:c,h:hs[i]})});
-    flush();
-    grid.textContent='';grid.appendChild(frag);grid.style.display='block';
+
+    let newPage=(ap.style.breakBefore=='page'||ap.style.pageBreakBefore=='always'||typeof used!=='number');
+    let cap1;
+    if(newPage)cap1=ph-th;
+    else{cap1=H*(1-used)-g.mb*mm-th-(16+1+10)*96/72;
+      if(cards.length && hs[0]>cap1){newPage=true;cap1=ph-th}}
+    if(newPage){ap.style.breakBefore='page';ap.style.pageBreakBefore='always';ap.style.marginTop='0';ap.style.paddingTop='0';ap.style.borderTop='0'}
+
+    const pages=[];
+    let cur={cols:[[],[]], heights:[0,0], cap:cap1, isFirst:true};
+
+    function pushCur(){
+      if(cur.cols[0].length||cur.cols[1].length||cur.sideCard){ pages.push(cur); }
+      cur={cols:[[],[]], heights:[0,0], cap:ph, isFirst:false};
+    }
+
+    for(let i=0;i<cards.length;i++){
+      const c=cards[i];
+      const h=hs[i];
+      const isSide=c.classList.contains('side');
+
+      if(isSide){
+        if(cur.cols[0].length||cur.cols[1].length) pushCur();
+        pages.push({type:'side', sideCard:{c:c,h:h}, cap:cur.cap, isFirst:cur.isFirst});
+        cur={cols:[[],[]], heights:[0,0], cap:ph, isFirst:false};
+        continue;
+      }
+
+      // Pilih kolom terpendek (masonry)
+      let colIdx = cur.heights[0]<=cur.heights[1] ? 0 : 1;
+      let newHeight = cur.heights[colIdx] + (cur.cols[colIdx].length?gap:0) + h;
+      let maxHeight = Math.max(newHeight, cur.heights[1-colIdx]);
+
+      // Jika tidak muat di halaman ini, buat halaman baru
+      // Kecuali ini card pertama di halaman
+      if(cur.cols[0].length+cur.cols[1].length>0 && maxHeight > cur.cap*0.985){
+        pushCur();
+        colIdx=0;
+        newHeight=h;
+        maxHeight=h;
+      }
+
+      cur.cols[colIdx].push({c:c,h:h});
+      cur.heights[colIdx] = newHeight;
+    }
+    if(cur.cols[0].length||cur.cols[1].length) pushCur();
+
+    // Render - bisa 6, 8, 10 card per halaman jika pendek
+    grid.textContent='';grid.style.display='block';
+    pages.forEach((pg,pi)=>{
+      const d=doc.createElement('div');d.className='lagu-pg';
+      const breakCss = (pi>0) ? ';break-before:page;page-break-before:always' : (pg.isFirst===false && pages.length?';break-before:page;page-break-before:always':'');
+      if(pg.type==='side'){
+        d.style.cssText='display:block'+breakCss;
+        d.appendChild(pg.sideCard.c);
+      }else{
+        d.style.cssText='display:block'+breakCss;
+        const colsWrap=doc.createElement('div');
+        colsWrap.className='lagu-pg-cols';
+        const col0=doc.createElement('div'); col0.className='lagu-pg-col';
+        const col1=doc.createElement('div'); col1.className='lagu-pg-col';
+        pg.cols[0].forEach(o=>col0.appendChild(o.c));
+        pg.cols[1].forEach(o=>col1.appendChild(o.c));
+        colsWrap.appendChild(col0); colsWrap.appendChild(col1);
+        d.appendChild(colsWrap);
+      }
+      grid.appendChild(d);
+    });
   }catch(e){console.error(e)}
 }
 function fitLampiran(ifr,doc,g){
@@ -452,7 +595,12 @@ function openF4Pdf(){
   const x=D.liturgies.find(y=>y.id==S.id); if(!x){ window._pdfLock=false; return; }
   let html=buildF4Html(x);
   html = html.replace(/<script>window\.onload[\s\S]*?<\/script>/gi, '');
-  const safeTitle = ((x.judul||'Liturgi')+' - F4 11pt').trim().replace(/[<>]/g,'').slice(0,120);
+  const _tglPdf = x.tanggal ? pdfFmtDate(x.tanggal) : '';
+  const _jamPdf = jamList(x).join(', ');
+  let _baseTitle = (x.judul||'Liturgi').trim();
+  if(_tglPdf) _baseTitle += ' - ' + _tglPdf;
+  if(_jamPdf) _baseTitle += ' - ' + _jamPdf;
+  const safeTitle = _baseTitle.replace(/[<>]/g,'').replace(/[\\/:*?"|]/g,'-').slice(0,150);
   html = html.replace(/<title>.*?<\/title>/i, '<title>'+safeTitle.replace(/"/g,'')+'</title>');
   let ifr=document.getElementById('pdf-ifr'); if(ifr) ifr.remove();
   ifr=document.createElement('iframe'); ifr.id='pdf-ifr';
@@ -473,8 +621,9 @@ function openF4Pdf(){
     try{ await ifr.contentWindow.document.fonts.ready; }catch(e){}
     // beri waktu font render
     await new Promise(r=>setTimeout(r,400));
-    packLampiran(ifr,doc,{w:215,h:330,mt:10,mb:10,ml:10,mr:10});
-    fitLampiran(ifr,doc,{w:215,h:330,mt:10,mb:10,ml:10,mr:10});
+    await ensureLaguImgMin(ifr,doc,{w:215,h:330,mt:10,mb:10,ml:10,mr:10});
+    const _used=fitLampiran(ifr,doc,{w:215,h:330,mt:10,mb:10,ml:10,mr:10});
+    packLampiran(ifr,doc,{w:215,h:330,mt:10,mb:10,ml:10,mr:10},_used);
     try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }catch(e){ console.error(e); }
     setTimeout(()=>{ try{ document.title = origParentTitle; }catch(e){} window._pdfLock=false; try{ifr.remove();}catch(e){} }, 2000);
   };
@@ -488,7 +637,12 @@ function openF4HalfSuperMepetPdf(){
   const x=D.liturgies.find(y=>y.id==S.id); if(!x){ window._pdfLock=false; return; }
   let html=buildF4HalfSuperMepetHtml(x);
   html = html.replace(/<script>window\.onload[\s\S]*?<\/script>/gi, '');
-  const safeTitle = ((x.judul||'Liturgi')+' - Super Mepet').trim().replace(/[<>]/g,'').slice(0,120);
+  const _tglPdf2 = x.tanggal ? pdfFmtDate(x.tanggal) : '';
+  const _jamPdf2 = jamList(x).join(', ');
+  let _baseTitle2 = (x.judul||'Liturgi').trim();
+  if(_tglPdf2) _baseTitle2 += ' - ' + _tglPdf2;
+  if(_jamPdf2) _baseTitle2 += ' - ' + _jamPdf2;
+  const safeTitle = _baseTitle2.replace(/[<>]/g,'').replace(/[\\/:*?"|]/g,'-').slice(0,150);
   html = html.replace(/<title>.*?<\/title>/i, '<title>'+safeTitle.replace(/"/g,'')+'</title>');
   let ifr=document.getElementById('pdf-ifr'); if(ifr) ifr.remove();
   ifr=document.createElement('iframe'); ifr.id='pdf-ifr';
@@ -508,8 +662,9 @@ function openF4HalfSuperMepetPdf(){
     try{ document.title = safeTitle; }catch(e){}
     try{ await ifr.contentWindow.document.fonts.ready; }catch(e){}
     await new Promise(r=>setTimeout(r,400));
-    packLampiran(ifr,doc,{w:165,h:215,mt:4,mb:10,ml:6,mr:10});
-    fitLampiran(ifr,doc,{w:165,h:215,mt:4,mb:10,ml:6,mr:10});
+    await ensureLaguImgMin(ifr,doc,{w:165,h:215,mt:4,mb:10,ml:6,mr:10});
+    const _used=fitLampiran(ifr,doc,{w:165,h:215,mt:4,mb:10,ml:6,mr:10});
+    packLampiran(ifr,doc,{w:165,h:215,mt:4,mb:10,ml:6,mr:10},_used);
     try{ ifr.contentWindow.focus(); ifr.contentWindow.print(); }catch(e){ console.error(e); }
     setTimeout(()=>{ try{ document.title = origParentTitle; }catch(e){} window._pdfLock=false; try{ifr.remove();}catch(e){} }, 2000);
   };
@@ -707,7 +862,14 @@ async function doUnifiedLogin(){
     if(sb){
       try{
         const {data:cur}=await sb.auth.getSession();
-        if(!cur||!cur.session){
+        const curEmail = (cur&&cur.session&&cur.session.user&&cur.session.user.email||'').toLowerCase();
+        // Jika sudah login tapi bukan sebagai lagu, logout dulu
+        if(cur&&cur.session && curEmail!==LAGU_EMAIL.toLowerCase()){
+          try{ await sb.auth.signOut(); }catch(e){}
+        }
+        // Selalu coba login sebagai lagu (jika belum ada session lagu)
+        const {data:cur2}=await sb.auth.getSession();
+        if(!cur2||!cur2.session || (cur2.session.user.email||'').toLowerCase()!==LAGU_EMAIL.toLowerCase()){
           const {error:le}=await sb.auth.signInWithPassword({email:LAGU_EMAIL,password:LAGU_PASS});
           if(le){ if(errEl) errEl.textContent='Akun Pilih Lagu belum dibuat di Supabase: '+le.message; return; }
         }
@@ -770,6 +932,7 @@ if(S.view!='edit'){
 }
 
   h+='</header><main>';
+  if(S.tab=='admin'&&S.laguUn&&!S.un) S.tab='lagu'; // pengaman: pemilih lagu tidak boleh masuk tampilan admin
   ensureOrders(); const L=getSortedLiturgies();
   const gateAdmin=S.tab=='admin'&&S.view=='list'&&(!S.un&&!S.laguUn||S.chg);
 const gateLagu=S.tab=='lagu'&&S.view=='list'&&!S.laguUn&&!S.un;
@@ -871,7 +1034,7 @@ if(S.tab=='lagu' && S.laguUn){
       +'<div class="card" style="padding:10px"><div class="tag" style="margin-bottom:8px">📚 Cetak PDF</div><div class="row" style="gap:8px;flex-wrap:wrap">'
       +'<button class="btn o sm" data-a="pdff4">📄 F4 (215x330)</button>'
       +'<button class="btn o sm" data-a="pdff4super">📗 Bookfold F4</button>'
-      +'</div>'+(x.points.some(p=>p.type=='lagu')?'<label style="margin-top:10px">Tampilan notasi lagu di PDF<select id="notasiMode"><option value="auto"'+(NOTASI=='auto'?' selected':'')+'>Otomatis (berdampingan bila ada gambar &amp; teks, selain itu ke bawah)</option><option value="bawah"'+(NOTASI=='bawah'?' selected':'')+'>Selalu memanjang ke bawah</option></select></label>':'')+'</div>';
+      +'</div></div>';
 
       // HEADER IMAGE PER LITURGI - beda liturgi beda image
       if(x.headerImg){
@@ -924,7 +1087,7 @@ document.addEventListener('input',e=>{
   if(t.dataset.i==null)S.edit[f]=t.value;
   else{const p=S.edit.points[t.dataset.i];if(t.dataset.l!=null){if(f=='who'&&t.value=='__custom'){p.lines[t.dataset.l].who='Petugas';render();return}p.lines[t.dataset.l][f]=t.value;if(f=='who'&&t.tagName=='SELECT')render()}else{if(f=='label'&&t.tagName=='SELECT'){p.label=t.value=='__custom'?'Menyanyikan lagu':t.value;render();return}p[f]=t.value}}
 });
-document.addEventListener('change',e=>{if(e.target.id=='notasiMode'){NOTASI=e.target.value=='bawah'?'bawah':'auto';try{localStorage.setItem('notasiMode',NOTASI)}catch(_){}}});
+// Pilihan notasi otomatis dihapus - selalu memanjang ke bawah
 document.addEventListener('input',e=>{const el=e.target&&e.target.closest?e.target.closest('[data-rt]'):null;if(el)syncRt(el)});
 document.addEventListener('mousedown',e=>{if(e.target.closest&&e.target.closest('[data-a=fmt]'))e.preventDefault()});
 document.addEventListener('paste',e=>{const el=e.target&&e.target.closest?e.target.closest('[data-rt]'):null;if(!el)return;e.preventDefault();
@@ -934,7 +1097,7 @@ document.addEventListener('paste',e=>{const el=e.target&&e.target.closest?e.targ
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-a]');if(!b)return;
   const a=b.dataset.a,id=b.dataset.id,i=+b.dataset.i,E=S.edit;
-  if(['new','edit','dup','del','save','add','up','dn','rm','addl','rml','chpin','exp','imp','upimg','rmimg'].includes(a)&&!(S.admin&&S.un))return;
+  if(['new','edit','dup','del','save','add','up','dn','rm','addl','rml','chpin','exp','imp','upimg','rmimg'].includes(a)&&!(S.admin&&S.un)&&!(S.laguUn&&S.view=='editlagu'&&(a=='upimg'||a=='rmimg')))return; /* pemilih lagu boleh unggah/hapus gambar notasi hanya saat edit lagu */
   if(a=='fmt'){document.execCommand(b.dataset.cmd,false,null);const ae=document.activeElement,ed=ae&&ae.closest?ae.closest('[data-rt]'):null;if(ed)syncRt(ed);return}
   if(a=='unlock')return doLogin();
   if(a=='open'&&!e.target.closest('button')){S.view='detail';S.id=id;S.dn=ld(id); updateUrlForId(id);}
@@ -968,11 +1131,37 @@ document.addEventListener('click',async e=>{
   else if(a=='zoomtog'){document.querySelector('.ov').classList.toggle('z');return}
   else if(a=='closeov'){S.zoom=null}
   else if(a=='rmimg'){E.points[i].imgs.splice(+b.dataset.l,1)}
-  else if(a=='upimg'){const f=document.createElement('input');f.type='file';f.accept='image/*';f.multiple=true;f.onchange=async()=>{const p=E.points[i];p.imgs=p.imgs||[];toast('Mengunggah gambar...');for(const fl of f.files){try{p.imgs.push(await upl(fl))}catch(e){toast('Gagal unggah: '+(e.message||'gambar'))}}render()};f.click();return}
+  else if(a=='upimg'){
+    const f=document.createElement('input');f.type='file';f.accept='image/*';f.multiple=true;
+    f.onchange=async()=>{
+      const p=E.points[i];
+      p.imgs=p.imgs||[];
+      const files=[...f.files];
+      if(!files.length) return;
+      toast('Mengunggah '+files.length+' gambar...');
+      let ok=0, fail=0;
+      for(const fl of files){
+        try{
+          const url=await upl(fl);
+          p.imgs.push(url);
+          ok++;
+          toast('Terupload '+ok+'/'+files.length);
+        }catch(e){
+          fail++;
+          toast('Gagal unggah '+fl.name+': '+(e.message||'gambar'));
+          console.error('upload fail', e);
+        }
+      }
+      if(ok>0) toast(ok+' gambar berhasil diupload'+(fail?' , '+fail+' gagal':''));
+      render();
+    };
+    f.click();
+    return
+  }
   else if(a=='lock'){ doAdminLogout(); return }
   else if(a=='theme'){P.th=P.th=='auto'?'light':P.th=='light'?'dark':'auto';applyP()}
   else if(a=='fs'){P.fs=Math.min(1.4,Math.max(.85,+(P.fs+(+b.dataset.v)).toFixed(2)));applyP()}
-  else if(a=='tab'){S.tab=b.dataset.v;S.cf=null;S.chg=false;ss('lt',S.tab)}
+  else if(a=='tab'){S.tab=b.dataset.v; if(S.tab=='admin'&&S.laguUn&&!S.un)S.tab='lagu'; /* user Pilih Lagu tetap di mode lagu, bukan admin */ S.cf=null;S.chg=false;ss('lt',S.tab)}
   else if(a=='back'){S.view='list'; clearUrlId();}
   else if(a=='sharewa'){const x=D.liturgies.find(y=>y.id==S.id); if(x) shareToWA(x.id, x.judul); return}
   else if(a=='sharecopy'){const x=D.liturgies.find(y=>y.id==S.id); if(x) copyShareLink(x.id); return}
@@ -1016,14 +1205,51 @@ document.addEventListener('click',async e=>{
     const orig = D.liturgies.find(y=>y.id==S.edit.id);
     if(!orig){ toast('Liturgi tidak ditemukan'); return; }
     orig.points[origIdx]=editedPoint;
+    // Simpan state untuk rollback jika gagal
+    const _backupPoint = JSON.parse(JSON.stringify(orig.points[origIdx]));
+    // Update local dulu untuk UI responsif
+    orig.points[origIdx]=editedPoint;
     S.edit=null; S.laguEditIdx=null; S.view='detail';
     if(S.un){ persist(orig); toast('Lagu disimpan - '+ (editedPoint.title||'tanpa judul')); render(); return }
-    // Pilih Lagu: hanya boleh ubah judul, gambar, teks lagu (lewat fungsi khusus di Supabase)
+    // Pilih Lagu: simpan ke server via RPC - HARUS termasuk nomor, label, judul, gambar, lirik
     (async()=>{
       if(!sb){ toast('Supabase belum dikonfigurasi'); render(); return }
-      const {error}=await sb.rpc('update_lagu_point',{p_liturgy_id:String(orig.id),p_point_id:String(editedPoint.id),p_title:editedPoint.title||'',p_imgs:editedPoint.imgs||[],p_lirik:editedPoint.lirik||''});
-      if(error){ toast('Gagal menyimpan: '+error.message); await loadAll(); return }
-      toast('Lagu disimpan - '+(editedPoint.title||'tanpa judul')); render();
+      try{
+        // Coba RPC baru dengan nomor dan label (fix bug 1)
+        let {error}=await sb.rpc('update_lagu_point',{
+          p_liturgy_id:String(orig.id),
+          p_point_id:String(editedPoint.id),
+          p_title:editedPoint.title||'',
+          p_nomor:editedPoint.nomor||'',
+          p_label:editedPoint.label||'',
+          p_imgs:editedPoint.imgs||[],
+          p_lirik:editedPoint.lirik||''
+        });
+        // Fallback ke RPC lama jika server belum update (hanya title, imgs, lirik)
+        if(error && error.message && error.message.toLowerCase().includes('p_nomor')){
+          const {error:err2}=await sb.rpc('update_lagu_point',{p_liturgy_id:String(orig.id),p_point_id:String(editedPoint.id),p_title:editedPoint.title||'',p_imgs:editedPoint.imgs||[],p_lirik:editedPoint.lirik||''});
+          error=err2;
+        }
+        if(error){ 
+          // rollback local
+          const o = D.liturgies.find(y=>y.id==orig.id);
+          if(o) o.points[origIdx]=_backupPoint;
+          toast('Gagal menyimpan ke server: '+error.message+' - perubahan dibatalkan'); 
+          await loadAll(); 
+          render();
+          return 
+        }
+        toast('Lagu disimpan ke server - '+(editedPoint.title||'tanpa judul')); 
+        // Refresh dari server untuk memastikan tersimpan
+        await loadAll();
+        render();
+      }catch(e){
+        const o = D.liturgies.find(y=>y.id==orig.id);
+        if(o) o.points[origIdx]=_backupPoint;
+        toast('Error simpan: '+(e.message||'unknown'));
+        await loadAll();
+        render();
+      }
     })(); return
   }
 
@@ -1094,10 +1320,13 @@ applyP();render();
 // splash 2 detik putih transparan GKE BUKT HINDU kecil
 setTimeout(()=>{ const s=document.getElementById('splash'); if(s){ s.classList.add('hide'); setTimeout(()=>{ s.remove(); },600); } },2000);
 (async()=>{
-  S.admin=true;
-  try{ if(sessionStorage.getItem('lagu')=='1') S.laguUn=true; if(sessionStorage.getItem('admin')=='1') S.un=true; }catch(e){}
-  if(sg('lt')=='lagu') S.tab='lagu'; else if(sg('lt')=='admin') S.tab='admin'; else if(S.laguUn) S.tab='lagu';
-  // SHARE LINK WA: parse ?id= dari URL untuk deep link
+  // BUGFIX: Jangan auto-login admin saat offline
+  // Default aman - semua status login false, tab jemaat
+  S.admin=false;
+  S.un=false;
+  S.laguUn=false;
+  S.tab='jemaat';
+  // SHARE LINK WA: parse ?id= dari URL untuk deep link (tetap boleh offline)
   try{
     const urlParams = new URLSearchParams(window.location.search);
     const shareId = urlParams.get('id');
@@ -1107,9 +1336,67 @@ setTimeout(()=>{ const s=document.getElementById('splash'); if(s){ s.classList.a
     }
   }catch(e){}
 
-  if(!sb){render();toast('Isi URL dan anon key Supabase di file ini');return}
-  const {data}=await sb.auth.getSession();S.un=!!data.session;
-  sb.auth.onAuthStateChange((ev,ses)=>{const u=!!ses;if(u!=S.un){S.un=u;render()}});
+  if(!sb || !navigator.onLine){
+    // OFFLINE / Supabase tidak ter-load (CDN gagal atau file://) atau browser offline
+    // Paksa mode jemaat saja, tidak boleh auto admin
+    S.admin=false;
+    S.un=false;
+    S.laguUn=false;
+    S.tab='jemaat';
+    // Bersihkan flag login yang mungkin nyangkut di sessionStorage
+    try{ sessionStorage.removeItem('admin'); sessionStorage.removeItem('lagu'); }catch(e){}
+    render();
+    toast('Mode offline - login admin butuh koneksi internet');
+    return
+  }
+  // ONLINE - Supabase tersedia
+  S.admin=true;
+
+  // VALIDASI SESSION SUPABASE DENGAN CEK EMAIL (FIX cross-tab bug lagu -> admin)
+  const {data}=await sb.auth.getSession();
+  const sess = data && data.session ? data.session : null;
+  const email = (sess && sess.user && sess.user.email ? sess.user.email : '').toLowerCase();
+  
+  if(!sess){
+    // Tidak ada session -> paksa logout total
+    S.un=false;
+    S.laguUn=false;
+    try{ sessionStorage.removeItem('admin'); sessionStorage.removeItem('lagu'); }catch(e){}
+    // tab tetap jemaat, kecuali ada share link
+    if(!S._pendingShareId) S.tab='jemaat';
+  } else if(email === LAGU_EMAIL.toLowerCase()){
+    // Session adalah akun Pilih Lagu -> JANGAN jadi admin
+    S.laguUn=true;
+    S.un=false;
+    try{ sessionStorage.setItem('lagu','1'); sessionStorage.removeItem('admin'); }catch(e){}
+    ss('lt','lagu');
+    // Paksa tab lagu, bukan admin full (ini yang bikin bug sebelumnya)
+    S.tab='lagu';
+  } else {
+    // Session adalah admin asli
+    S.un=true;
+    S.laguUn=false;
+    try{ sessionStorage.setItem('admin','1'); sessionStorage.removeItem('lagu'); }catch(e){}
+    ss('lt','admin');
+    // Jika buka tab baru saat masih login admin, tetap admin. Tapi jika ada flag lagu sebelumnya, jangan override ke admin?
+    // Kita hormati last tab hanya jika itu admin, jika tidak paksa jemaat/admin sesuai role
+    const last = sg('lt');
+    if(last === 'admin' || S.tab === 'admin' || S.tab === 'jemaat') S.tab='admin';
+  }
+  
+  // Listener auth state change juga harus bedakan email
+  sb.auth.onAuthStateChange((ev,ses)=>{
+    const em = (ses && ses.user && ses.user.email ? ses.user.email : '').toLowerCase();
+    if(!ses){
+      S.un=false; S.laguUn=false;
+      try{ sessionStorage.removeItem('admin'); sessionStorage.removeItem('lagu'); }catch(e){}
+      S.tab='jemaat'; render();
+    } else if(em === LAGU_EMAIL.toLowerCase()){
+      if(!S.laguUn || S.un){ S.laguUn=true; S.un=false; S.tab='lagu'; render(); }
+    } else {
+      if(!S.un || S.laguUn){ S.un=true; S.laguUn=false; S.tab='admin'; render(); }
+    }
+  });
   render();await loadAll();
   // Jika ada pending share id, coba buka setelah data loaded
   if(S._pendingShareId){
