@@ -683,6 +683,7 @@ function toggleArchive(id){
 // SATU PINTU LOGIN - Admin (email Supabase) & Pilih Lagu (lagu/lagu123) dalam 1 form
 const LAGU_USER='lagu';
 const LAGU_PASS='lagu123';
+const LAGU_EMAIL='lagu@gkebukithindu.app'; // akun Supabase khusus Pilih Lagu (buat di Supabase > Authentication > Users)
 function getLaguCreds(){ return {user:LAGU_USER, pass:LAGU_PASS}; }
 
 function lockCard(){
@@ -702,6 +703,16 @@ async function doUnifiedLogin(){
   if(!u || !p){ if(errEl) errEl.textContent='Isi username/email dan password'; return; }
   // 1. Cek Pilih Lagu dulu
   if(u===LAGU_USER && p===LAGU_PASS){
+    // Masuk ke Supabase juga supaya simpan lagu punya izin (bukan anon)
+    if(sb){
+      try{
+        const {data:cur}=await sb.auth.getSession();
+        if(!cur||!cur.session){
+          const {error:le}=await sb.auth.signInWithPassword({email:LAGU_EMAIL,password:LAGU_PASS});
+          if(le){ if(errEl) errEl.textContent='Akun Pilih Lagu belum dibuat di Supabase: '+le.message; return; }
+        }
+      }catch(e){ if(errEl) errEl.textContent='Gagal login Pilih Lagu: '+(e.message||'error'); return; }
+    }
     S.laguUn=true; S.un=false;
     try{ sessionStorage.setItem('lagu','1'); sessionStorage.removeItem('admin'); }catch(e){}
     S.tab='lagu'; S.view='list'; ss('lt','lagu'); render(); toast('Masuk sebagai Pemilih Lagu'); return;
@@ -710,8 +721,15 @@ async function doUnifiedLogin(){
   if(u.includes('@')){
     if(!sb){ if(errEl) errEl.textContent='Supabase belum dikonfigurasi'; return; }
     try{
-      const {error} = await sb.auth.signInWithPassword({email:u, password:p});
+      const {data:sd,error} = await sb.auth.signInWithPassword({email:u, password:p});
       if(error){ if(errEl) errEl.textContent='Email atau password salah: '+error.message; return; }
+      // Akun Pilih Lagu tidak boleh jadi admin walau login pakai email
+      const em=((sd&&sd.user&&sd.user.email)||u).toLowerCase();
+      if(em===LAGU_EMAIL.toLowerCase()){
+        S.laguUn=true; S.un=false;
+        try{ sessionStorage.setItem('lagu','1'); sessionStorage.removeItem('admin'); }catch(e){}
+        S.tab='lagu'; S.view='list'; ss('lt','lagu'); render(); toast('Masuk sebagai Pemilih Lagu'); return;
+      }
       S.un=true; S.laguUn=false;
       try{ sessionStorage.setItem('admin','1'); sessionStorage.removeItem('lagu'); }catch(e){}
       S.tab='admin'; S.view='list'; ss('lt','admin'); render(); toast('Masuk sebagai Admin'); return;
@@ -724,7 +742,7 @@ async function doLogin(){ return doUnifiedLogin(); }
 function doLaguLogin(){ return doUnifiedLogin(); }
 
 function doLaguLogout(){
-  S.laguUn=false;
+  S.laguUn=false; if(sb) try{ sb.auth.signOut(); }catch(e){}
   try{ sessionStorage.removeItem('lagu'); sessionStorage.removeItem('admin'); }catch(e){}
   S.tab='jemaat'; S.view='list'; render(); toast('Keluar Pilih Lagu');
 }
@@ -999,7 +1017,14 @@ document.addEventListener('click',async e=>{
     if(!orig){ toast('Liturgi tidak ditemukan'); return; }
     orig.points[origIdx]=editedPoint;
     S.edit=null; S.laguEditIdx=null; S.view='detail';
-    persist(orig); toast('Lagu disimpan - '+ (editedPoint.title||'tanpa judul')); render(); return
+    if(S.un){ persist(orig); toast('Lagu disimpan - '+ (editedPoint.title||'tanpa judul')); render(); return }
+    // Pilih Lagu: hanya boleh ubah judul, gambar, teks lagu (lewat fungsi khusus di Supabase)
+    (async()=>{
+      if(!sb){ toast('Supabase belum dikonfigurasi'); render(); return }
+      const {error}=await sb.rpc('update_lagu_point',{p_liturgy_id:String(orig.id),p_point_id:String(editedPoint.id),p_title:editedPoint.title||'',p_imgs:editedPoint.imgs||[],p_lirik:editedPoint.lirik||''});
+      if(error){ toast('Gagal menyimpan: '+error.message); await loadAll(); return }
+      toast('Lagu disimpan - '+(editedPoint.title||'tanpa judul')); render();
+    })(); return
   }
 
   else if(a=='cancel'){S.edit=null;S.view='list'}
